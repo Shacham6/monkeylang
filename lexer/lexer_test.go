@@ -3,6 +3,7 @@ package lexer_test
 import (
 	"testing"
 
+	"github.com/Shacham6/gointerpreter/lexer"
 	"github.com/Shacham6/gointerpreter/token"
 )
 
@@ -24,7 +25,7 @@ func TestNextToken(t *testing.T) {
 		{token.EOF, ""},
 	}
 
-	l := New(input)
+	l := lexer.New(input)
 	for i, tt := range tests {
 		tok := l.NextToken()
 		if tok.Type != tt.expectedType {
