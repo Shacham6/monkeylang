@@ -97,7 +97,7 @@ func (l *Lexer) readNumber() string {
 
 func isLetter(ch byte) bool {
 	// Must change in order to support unicode stuff, right?
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '!'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }
 
 // Skip forward all of the following whitespaces until a non-whitespace character
