@@ -8,26 +8,26 @@ type Token struct {
 }
 
 const (
-	ILLEGAL = "ILLEGAL"
-	EOF     = "EOF"
+	ILLEGAL = TokenType("ILLEGAL")
+	EOF     = TokenType("EOF")
 	// Identifiers + literals
-	IDENT = "IDENT"
-	INT   = "INT"
+	IDENT = TokenType("IDENT")
+	INT   = TokenType("INT")
 	// Operators
-	ASSIGN = "ASSIGN"
-	PLUS   = "PLUS"
+	ASSIGN = TokenType("ASSIGN")
+	PLUS   = TokenType("PLUS")
 	// Delimiters
-	COMMA     = "COMMA"
-	SEMICOLON = "SEMICOLON"
+	COMMA     = TokenType("COMMA")
+	SEMICOLON = TokenType("SEMICOLON")
 
-	LPAREN = "LPAREN"
-	RPAREN = "RPAREN"
-	LBRACE = "LBRACE"
-	RBRACE = "RBRACE"
+	LPAREN = TokenType("LPAREN")
+	RPAREN = TokenType("RPAREN")
+	LBRACE = TokenType("LBRACE")
+	RBRACE = TokenType("RBRACE")
 
 	// Keywords
-	FUNCTION = "FUNCTION"
-	LET      = "LET"
+	FUNCTION = TokenType("FUNCTION")
+	LET      = TokenType("LET")
 )
 
 var keywords = map[string]TokenType{

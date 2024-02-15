@@ -7,6 +7,16 @@ import (
 	"github.com/Shacham6/gointerpreter/token"
 )
 
+func TestSemicolon(t *testing.T) {
+	input := `;`
+	l := lexer.New(input)
+	token_ := l.NextToken()
+
+	if token_.Type != token.SEMICOLON {
+		t.Fatalf("test failed, token is not a semicolon as expected. It's=%q", token_.Type)
+	}
+}
+
 func TestNextToken(t *testing.T) {
 	input := `let five = 5;
 let ten = 10;
