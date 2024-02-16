@@ -7,16 +7,6 @@ import (
 	"github.com/Shacham6/gointerpreter/token"
 )
 
-func TestSemicolon(t *testing.T) {
-	input := `;`
-	l := lexer.New(input)
-	token_ := l.NextToken()
-
-	if token_.Type != token.SEMICOLON {
-		t.Fatalf("test failed, token is not a semicolon as expected. It's=%q", token_.Type)
-	}
-}
-
 func TestNextToken(t *testing.T) {
 	input := `let five = 5;
 let ten = 10;
@@ -62,6 +52,7 @@ let result = add(five, ten);
 		{token.IDENT, "add"},
 		{token.LPAREN, "("},
 		{token.IDENT, "five"},
+		{token.COMMA, ","},
 		{token.IDENT, "ten"},
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
@@ -71,12 +62,15 @@ let result = add(five, ten);
 	l := lexer.New(input)
 	for i, tt := range tests {
 		tok := l.NextToken()
-		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokenType wrong, expected=%q, got=%q", i, tt.expectedType, tok.Type)
-		}
-
-		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong, expected=%q, got=%q", i, tt.expectedLiteral, tok.Literal)
+		if tok.Literal != tt.expectedLiteral || tok.Type != tt.expectedType {
+			t.Fatalf(
+				"tests[%d] - lexing wrong. expected=(Type = %q, Literal = %q), got=(Type = %q, Literal = %q)",
+				i,
+				tt.expectedType,
+				tt.expectedLiteral,
+				tok.Type,
+				tok.Literal,
+			)
 		}
 	}
 }
