@@ -8,40 +8,50 @@ type Token struct {
 }
 
 const (
-	ILLEGAL = TokenType("ILLEGAL")
-	EOF     = TokenType("EOF")
+	ILLEGAL = "ILLEGAL"
+	EOF     = "EOF"
 
 	// Identifiers + literals
-	IDENT = TokenType("IDENT")
-	INT   = TokenType("INT")
+	IDENT = "IDENT"
+	INT   = "INT"
 
 	// Operators
-	ASSIGN  = TokenType("ASSIGN")
-	PLUS    = TokenType("PLUS")
-	MINUS   = TokenType("MINUS")
-	BANG    = TokenType("BANG")
-	ASTERIX = TokenType("ASTERIX")
-	SLASH   = TokenType("SLASH")
-	LT      = TokenType("<")
-	GT      = TokenType(">")
+	ASSIGN  = "ASSIGN"
+	PLUS    = "PLUS"
+	MINUS   = "MINUS"
+	BANG    = "BANG"
+	ASTERIX = "ASTERIX"
+	SLASH   = "SLASH"
+	LT      = "<"
+	GT      = ">"
 
 	// Delimiters
-	COMMA     = TokenType("COMMA")
-	SEMICOLON = TokenType("SEMICOLON")
+	COMMA     = "COMMA"
+	SEMICOLON = "SEMICOLON"
 
-	LPAREN = TokenType("LPAREN")
-	RPAREN = TokenType("RPAREN")
-	LBRACE = TokenType("LBRACE")
-	RBRACE = TokenType("RBRACE")
+	LPAREN = "LPAREN"
+	RPAREN = "RPAREN"
+	LBRACE = "LBRACE"
+	RBRACE = "RBRACE"
 
 	// Keywords
-	FUNCTION = TokenType("FUNCTION")
-	LET      = TokenType("LET")
+	FUNCTION = "FUNCTION"
+	LET      = "LET"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
 )
 
 var keywords = map[string]TokenType{
-	"fn":  FUNCTION,
-	"let": LET,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
 }
 
 func LookupIdent(rawString string) TokenType {
