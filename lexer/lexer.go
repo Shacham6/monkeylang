@@ -17,17 +17,29 @@ func New(input string) *Lexer {
 	return l
 }
 
+// Whether the lexers cursor's passed the available input.
+func (l *Lexer) isOverflow() bool {
+	return l.readPosition >= len(l.input)
+}
+
 // Consume the current token and move on to the next one.
 // If there are no more tokens available, the current reading
 // byte will be of value ” (EOF).
 func (l *Lexer) readChar() {
-	if l.readPosition >= len(l.input) {
+	if l.isOverflow() {
 		l.ch = 0
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
 	l.position = l.readPosition
 	l.readPosition += 1
+}
+
+func (l *Lexer) peekChar() byte {
+	if l.isOverflow() {
+		return 0
+	}
+	return l.input[l.readPosition]
 }
 
 func newToken(tokenType token.TokenType, literal byte) token.Token {
@@ -44,13 +56,32 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.ch {
 	case '=':
-		tok = newToken(token.ASSIGN, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{
+				Type:    token.EQ,
+				Literal: string(ch) + string(l.ch),
+			}
+		} else {
+			tok = newToken(token.ASSIGN, l.ch)
+		}
+
 	case '+':
 		tok = newToken(token.PLUS, l.ch)
 	case '-':
 		tok = newToken(token.MINUS, l.ch)
 	case '!':
-		tok = newToken(token.BANG, l.ch)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			tok = token.Token{
+				Type:    token.NOT_EQ,
+				Literal: string(ch) + string(l.ch),
+			}
+		} else {
+			tok = newToken(token.BANG, l.ch)
+		}
 	case '/':
 		tok = newToken(token.SLASH, l.ch)
 	case '*':

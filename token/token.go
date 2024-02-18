@@ -22,8 +22,10 @@ const (
 	BANG    = "BANG"
 	ASTERIX = "ASTERIX"
 	SLASH   = "SLASH"
-	LT      = "<"
-	GT      = ">"
+	LT      = "LT"
+	GT      = "GT"
+	EQ      = "EQ"
+	NOT_EQ  = "NOT_EQ"
 
 	// Delimiters
 	COMMA     = "COMMA"
