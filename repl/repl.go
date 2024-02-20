@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-
-	"github.com/Shacham6/gointerpreter/lexer"
-	"github.com/Shacham6/gointerpreter/token"
+	"monkey/lexer"
+	"monkey/token"
 )
 
 const PROMPT = ">> "
