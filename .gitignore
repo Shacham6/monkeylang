@@ -25,4 +25,5 @@
 # Go workspace file
 go.work
 
-monkey
+targets/
+
