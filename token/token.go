@@ -7,6 +7,10 @@ type Token struct {
 	Literal string
 }
 
+func (t *Token) Eq(o *Token) bool {
+	return t.Type == o.Type && t.Literal == o.Literal
+}
+
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
