@@ -3,5 +3,6 @@ build:
 
 test:
 	@go test ./...
+
 .PHONY: test
 

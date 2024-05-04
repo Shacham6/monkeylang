@@ -7,6 +7,10 @@ type Token struct {
 	Literal string
 }
 
+func New(t TokenType, literal string) Token {
+	return Token{t, literal}
+}
+
 func (t *Token) Eq(o *Token) bool {
 	return t.Type == o.Type && t.Literal == o.Literal
 }

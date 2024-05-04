@@ -46,6 +46,10 @@ type LetStatement struct {
 	Value Expression
 }
 
+func NewLetStatement(token token.Token, name *Identifier, value Expression) *LetStatement {
+	return &LetStatement{token, name, value}
+}
+
 func (ls *LetStatement) statementNode() {}
 
 func (ls *LetStatement) TokenLiteral() string {
@@ -76,6 +80,10 @@ type Identifier struct {
 	Value string
 }
 
+func NewIdentifier(t token.Token, value string) *Identifier {
+	return &Identifier{t, value}
+}
+
 func (*Identifier) expressionNode() {}
 
 func (i *Identifier) TokenLiteral() string {
@@ -84,6 +92,25 @@ func (i *Identifier) TokenLiteral() string {
 
 func (i *Identifier) String() string {
 	return i.Value
+}
+
+type IntegerLiteral struct {
+	Token token.Token // the INT token.
+	Value int64
+}
+
+func NewIntegerLiteral(t token.Token, value int64) *IntegerLiteral {
+	return &IntegerLiteral{t, value}
+}
+
+func (*IntegerLiteral) expressionNode() {}
+
+func (i *IntegerLiteral) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i IntegerLiteral) String() string {
+	return i.Token.Literal
 }
 
 type ExpressionStatement struct {
