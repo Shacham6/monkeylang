@@ -7,6 +7,22 @@ import (
 	"monkey/token"
 )
 
+type Precedence int
+
+var (
+	LOWEST      = Precedence(0)
+	EQUALS      = Precedence(1)
+	LESSGREATER = Precedence(2)
+	SUM         = Precedence(3)
+	PRODUCT     = Precedence(4)
+	PREFIX      = Precedence(5)
+	CALL        = Precedence(6)
+)
+
+type prefixParseFn func() ast.Expression
+
+type infixParseFn func(ast.Expression) ast.Expression
+
 type Parser struct {
 	l *lexer.Lexer
 
@@ -14,6 +30,9 @@ type Parser struct {
 	peekToken token.Token
 
 	errors []string
+
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -22,10 +41,20 @@ func New(l *lexer.Lexer) *Parser {
 		errors: []string{},
 	}
 
+	p.prefixParseFns = map[token.TokenType]prefixParseFn{
+		token.IDENT: p.parseIdentifier,
+	}
+
+	p.infixParseFns = map[token.TokenType]infixParseFn{}
+
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 func (p *Parser) nextToken() {
@@ -55,7 +84,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -89,6 +118,28 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+	return stmt
+}
+
+func (p *Parser) parseExpression(_precendence Precedence) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+
+	if prefix == nil {
+		return nil
+	}
+
+	leftExp := prefix()
+
+	return leftExp
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {

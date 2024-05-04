@@ -116,3 +116,36 @@ return 993322;
 		}
 	}
 }
+
+func checkAmountOfStatements(t *testing.T, program *ast.Program, expected int) {
+	if got := len(program.Statements); got != expected {
+		t.Fatalf("program has wrong amount of statements. expected = %d, got = %d", expected, got)
+	}
+}
+
+func TestIdentifierExpression(t *testing.T) {
+	input := `foobar;`
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+
+	checkParserErrors(t, p)
+	checkAmountOfStatements(t, program, 1)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ExpressionStatement like expected. Got %T", program.Statements[0])
+	}
+
+	ident, ok := stmt.Expression.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("expression is not Identifier. got = %T", stmt.Expression)
+	}
+
+	if ident.Value != "foobar" {
+		t.Errorf("identifier value not %s. got = %v", "foobar", ident.Value)
+	}
+
+	if ident.TokenLiteral() != "foobar" {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", "foobar", ident.TokenLiteral())
+	}
+}
