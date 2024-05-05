@@ -245,3 +245,53 @@ func testIntegerLiteral(t *testing.T, exp ast.Expression, expected int64) bool {
 
 	return true
 }
+
+func TestParsingInfixExpressions(t *testing.T) {
+	infixTests := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		{"5 + 5;", 5, "+", 5},
+		{"5 - 5;", 5, "-", 5},
+		{"5 * 5;", 5, "*", 5},
+		{"5 / 5;", 5, "/", 5},
+		{"5 > 5;", 5, ">", 5},
+		{"5 < 5;", 5, "<", 5},
+		{"5 == 5;", 5, "==", 5},
+		{"5 != 5;", 5, "!=", 5},
+	}
+
+	for _, infixTest := range infixTests {
+		p := parser.New(lexer.New(infixTest.input))
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("len(program.Statements). got = %d. expect = %d", len(program.Statements), 1)
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ExpressionStatement, got = %T", program.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("exp is not InfixExpression. got = %T", stmt.Expression)
+		}
+
+		if !testIntegerLiteral(t, exp.Left, infixTest.leftValue) {
+			return
+		}
+
+		if exp.Operator != infixTest.operator {
+			t.Fatalf("exp.Operator. got = %s. expect = %s", exp.Operator, infixTest.operator)
+		}
+
+		if !testIntegerLiteral(t, exp.Right, infixTest.rightValue) {
+			return
+		}
+	}
+}

@@ -134,6 +134,10 @@ type PrefixExpression struct {
 	Right    Expression
 }
 
+func NewPrefixExpression(t token.Token, operator string, right Expression) *PrefixExpression {
+	return &PrefixExpression{t, operator, right}
+}
+
 func (*PrefixExpression) expressionNode() {}
 
 func (p *PrefixExpression) TokenLiteral() string {
@@ -142,4 +146,25 @@ func (p *PrefixExpression) TokenLiteral() string {
 
 func (p *PrefixExpression) String() string {
 	return fmt.Sprintf("(%s%s)", p.Operator, p.Right.String())
+}
+
+type InfixExpression struct {
+	Token    token.Token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func NewInfixExpression(t token.Token, left Expression, operator string, right Expression) *InfixExpression {
+	return &InfixExpression{t, left, operator, right}
+}
+
+func (*InfixExpression) expressionNode() {}
+
+func (i *InfixExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i *InfixExpression) String() string {
+	return fmt.Sprintf("(%s%s%s)", i.Left.String(), i.Operator, i.Right)
 }
