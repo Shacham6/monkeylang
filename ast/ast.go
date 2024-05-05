@@ -166,5 +166,5 @@ func (i *InfixExpression) TokenLiteral() string {
 }
 
 func (i *InfixExpression) String() string {
-	return fmt.Sprintf("(%s%s%s)", i.Left.String(), i.Operator, i.Right)
+	return fmt.Sprintf("(%s %s %s)", i.Left.String(), i.Operator, i.Right)
 }
