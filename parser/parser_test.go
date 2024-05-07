@@ -360,15 +360,3 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		})
 	}
 }
-
-func TestOperatorPrecedenceParsing1(t *testing.T) {
-	p := parser.New(lexer.New("a + b + c"))
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-
-	got := program.String()
-	expected := "((a + b) + c);"
-	if got != expected {
-		t.Fatalf("program.String() got = %s. expect = %s", got, expected)
-	}
-}
