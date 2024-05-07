@@ -21,6 +21,64 @@ func checkParserErrors(t *testing.T, p *parser.Parser) {
 	t.FailNow()
 }
 
+func testIntegerLiteral(t *testing.T, exp ast.Expression, expected int64) bool {
+	integ, ok := exp.(*ast.IntegerLiteral)
+	if !ok {
+		t.Errorf("exp not IntegerLiteral. got = %T", exp)
+		return false
+	}
+
+	if integ.Value != expected {
+		t.Errorf("integ.Value. got = %d. expect = %d.", integ.Value, expected)
+		return false
+	}
+
+	if integ.TokenLiteral() != fmt.Sprintf("%d", expected) {
+		t.Errorf("integ.TokenLiteral(). got = %s. expect = %d", integ.TokenLiteral(), expected)
+		return false
+	}
+
+	return true
+}
+
+func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
+	if s.TokenLiteral() != "let" {
+		t.Errorf("s.TokenLiteral not 'let', got=%q", s.TokenLiteral())
+		return false
+	}
+
+	letStmt, ok := s.(*ast.LetStatement)
+	if !ok {
+		t.Errorf("s is not *ast.LetStatement. got=%T", s)
+		return false
+	}
+
+	if letStmt.Name.Value != name {
+		t.Errorf(
+			"letStmt.Name.Value not %s. got=%s",
+			name,
+			letStmt.Name.Value,
+		)
+		return false
+	}
+
+	if letStmt.Name.TokenLiteral() != name {
+		t.Errorf(
+			"s.Name not '%s'. got='%s'",
+			name,
+			letStmt.Name,
+		)
+		return false
+	}
+	return true
+}
+
+func checkAmountOfStatements(t *testing.T, program *ast.Program, expected int) {
+	if got := len(program.Statements); got != expected {
+		t.Fatalf("program has wrong amount of statements. expected = %d, got = %d", expected, got)
+	}
+}
+
 func TestLetStatements(t *testing.T) {
 	input := `
 let x = 5;
@@ -60,38 +118,6 @@ let foobar = 838383;
 	}
 }
 
-func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
-	if s.TokenLiteral() != "let" {
-		t.Errorf("s.TokenLiteral not 'let', got=%q", s.TokenLiteral())
-		return false
-	}
-
-	letStmt, ok := s.(*ast.LetStatement)
-	if !ok {
-		t.Errorf("s is not *ast.LetStatement. got=%T", s)
-		return false
-	}
-
-	if letStmt.Name.Value != name {
-		t.Errorf(
-			"letStmt.Name.Value not %s. got=%s",
-			name,
-			letStmt.Name.Value,
-		)
-		return false
-	}
-
-	if letStmt.Name.TokenLiteral() != name {
-		t.Errorf(
-			"s.Name not '%s'. got='%s'",
-			name,
-			letStmt.Name,
-		)
-		return false
-	}
-	return true
-}
-
 func TestReturnStatement(t *testing.T) {
 	input := `
 return 5;
@@ -115,12 +141,6 @@ return 993322;
 		if returnStmt.TokenLiteral() != "return" {
 			t.Errorf("returnStmt.TokenLiteral not 'return', got %q", returnStmt.TokenLiteral())
 		}
-	}
-}
-
-func checkAmountOfStatements(t *testing.T, program *ast.Program, expected int) {
-	if got := len(program.Statements); got != expected {
-		t.Fatalf("program has wrong amount of statements. expected = %d, got = %d", expected, got)
 	}
 }
 
@@ -224,26 +244,6 @@ func TestParsingPrefixExpressions(t *testing.T) {
 			return
 		}
 	}
-}
-
-func testIntegerLiteral(t *testing.T, exp ast.Expression, expected int64) bool {
-	integ, ok := exp.(*ast.IntegerLiteral)
-	if !ok {
-		t.Errorf("exp not IntegerLiteral. got = %T", exp)
-		return false
-	}
-
-	if integ.Value != expected {
-		t.Errorf("integ.Value. got = %d. expect = %d.", integ.Value, expected)
-		return false
-	}
-
-	if integ.TokenLiteral() != fmt.Sprintf("%d", expected) {
-		t.Errorf("integ.TokenLiteral(). got = %s. expect = %d", integ.TokenLiteral(), expected)
-		return false
-	}
-
-	return true
 }
 
 func TestParsingInfixExpressions(t *testing.T) {
@@ -358,5 +358,17 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 				t.Fatalf("program.String() got = %s, expect = %s", got, test.expected)
 			}
 		})
+	}
+}
+
+func TestOperatorPrecedenceParsing1(t *testing.T) {
+	p := parser.New(lexer.New("a + b + c"))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	got := program.String()
+	expected := "((a + b) + c);"
+	if got != expected {
+		t.Fatalf("program.String() got = %s. expect = %s", got, expected)
 	}
 }

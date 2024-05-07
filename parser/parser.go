@@ -13,12 +13,12 @@ type Precedence int
 const (
 	_                      = iota
 	LOWEST      Precedence = iota
-	EQUALS      Precedence = iota
-	LESSGREATER Precedence = iota
-	SUM         Precedence = iota
-	PRODUCT     Precedence = iota
-	PREFIX      Precedence = iota
-	CALL        Precedence = iota
+	EQUALS      Precedence = iota // == or !=
+	LESSGREATER Precedence = iota // > or <
+	SUM         Precedence = iota // - or +
+	PRODUCT     Precedence = iota // / (slash) or *
+	PREFIX      Precedence = iota // -X or !X
+	CALL        Precedence = iota // myFunction(X)
 )
 
 var precedences = map[token.TokenType]Precedence{
@@ -30,6 +30,22 @@ var precedences = map[token.TokenType]Precedence{
 	token.MINUS:   SUM,
 	token.SLASH:   PRODUCT,
 	token.ASTERIX: PRODUCT,
+}
+
+func (p *Parser) peekPrecedence() Precedence {
+	pr, ok := precedences[p.peekToken.Type]
+	if !ok {
+		return LOWEST
+	}
+	return pr
+}
+
+func (p *Parser) curPrecedence() Precedence {
+	pr, ok := precedences[p.curToken.Type]
+	if !ok {
+		return LOWEST
+	}
+	return pr
 }
 
 type prefixParseFn func() ast.Expression
@@ -239,20 +255,4 @@ func (p *Parser) Errors() []string {
 func (p *Parser) peekError(t token.TokenType) {
 	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
 	p.errors = append(p.errors, msg)
-}
-
-func (p *Parser) peekPrecedence() Precedence {
-	pr, ok := precedences[p.peekToken.Type]
-	if !ok {
-		return LOWEST
-	}
-	return pr
-}
-
-func (p *Parser) curPrecedence() Precedence {
-	pr, ok := precedences[p.curToken.Type]
-	if !ok {
-		return LOWEST
-	}
-	return pr
 }
