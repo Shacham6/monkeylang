@@ -82,14 +82,10 @@ func testBooleanLiteral(t *testing.T, exp ast.Expression, b bool) bool {
 	return true
 }
 
-type literalExpressionExpected interface {
-	bool | int | int64 | string
-}
-
-func testLiteralExpression[T literalExpressionExpected](
+func testLiteralExpression(
 	t *testing.T,
 	exp ast.Expression,
-	expected T,
+	expected interface{},
 ) bool {
 	switch v := interface{}(expected).(type) {
 	case bool:
@@ -107,12 +103,12 @@ func testLiteralExpression[T literalExpressionExpected](
 	return false
 }
 
-func testInfixExpression[T1 literalExpressionExpected, T2 literalExpressionExpected](
+func testInfixExpression(
 	t *testing.T,
 	exp ast.Expression,
-	left T1,
+	left interface{},
 	operator string,
-	right T2,
+	right interface{},
 ) bool {
 	opExp, ok := exp.(*ast.InfixExpression)
 	if !ok {
@@ -376,12 +372,12 @@ func TestParsingPrefixExpressions(t *testing.T) {
 	}
 }
 
-func TestParsingInfixInt64Expressions(t *testing.T) {
+func TestParsingInfixExpressions(t *testing.T) {
 	infixTests := []struct {
 		input      string
-		leftValue  int64
+		leftValue  interface{}
 		operator   string
-		rightValue int64
+		rightValue interface{}
 	}{
 		{"5 + 5;", 5, "+", 5},
 		{"5 - 5;", 5, "-", 5},
@@ -391,9 +387,9 @@ func TestParsingInfixInt64Expressions(t *testing.T) {
 		{"5 < 5;", 5, "<", 5},
 		{"5 == 5;", 5, "==", 5},
 		{"5 != 5;", 5, "!=", 5},
-		// {"true == true", true, "==", true},
-		// {"true != false", true, "!=", false},
-		// {"false == false", false, "==", false},
+		{"true == true", true, "==", true},
+		{"true != false", true, "!=", false},
+		{"false == false", false, "==", false},
 	}
 
 	for _, tt := range infixTests {
