@@ -322,19 +322,29 @@ func TestBooleanExpression(t *testing.T) {
 
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
-		input        string
-		operator     string
-		integerValue int64
+		input    string
+		operator string
+		value    interface{}
 	}{
 		{
-			input:        "!5;",
-			operator:     "!",
-			integerValue: 5,
+			input:    "!5;",
+			operator: "!",
+			value:    5,
 		},
 		{
-			input:        "-15;",
-			operator:     "-",
-			integerValue: 15,
+			input:    "-15;",
+			operator: "-",
+			value:    15,
+		},
+		{
+			input:    "!true;",
+			operator: "!",
+			value:    true,
+		},
+		{
+			input:    "!false;",
+			operator: "!",
+			value:    false,
 		},
 	}
 
@@ -364,7 +374,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 					t.Fatalf("exp.Operator. got = %s. expect = %s", exp.Operator, tt.operator)
 				}
 
-				if !testIntegerLiteral(t, exp.Right, tt.integerValue) {
+				if !testLiteralExpression(t, exp.Right, tt.value) {
 					return
 				}
 			},
