@@ -37,12 +37,13 @@ func New(l *lexer.Lexer) *Parser {
 	}
 
 	p.prefixParseFns = map[token.TokenType]prefixParseFn{
-		token.IDENT: p.parseIdentifier,
-		token.INT:   p.parseIntegerLiteral,
-		token.TRUE:  p.parseBoolean,
-		token.FALSE: p.parseBoolean,
-		token.BANG:  p.parsePrefixExpression,
-		token.MINUS: p.parsePrefixExpression,
+		token.IDENT:  p.parseIdentifier,
+		token.INT:    p.parseIntegerLiteral,
+		token.TRUE:   p.parseBoolean,
+		token.FALSE:  p.parseBoolean,
+		token.BANG:   p.parsePrefixExpression,
+		token.MINUS:  p.parsePrefixExpression,
+		token.LPAREN: p.parseGroupedExpression,
 	}
 
 	p.infixParseFns = map[token.TokenType]infixParseFn{
@@ -60,6 +61,18 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken() // Skip the start i.e "("
+
+	exp := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil // Should we return an error? IS this even an error?
+	}
+
+	return exp
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
