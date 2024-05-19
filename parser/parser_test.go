@@ -527,3 +527,95 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		})
 	}
 }
+
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x }`
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got = %d\n",
+			1, program.Statements)
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got = %T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got = %T",
+			stmt.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Condition(), "x", "<", "y") {
+		return
+	}
+
+	if lenConsequence := len(exp.Consequence().Statements()); lenConsequence != 1 {
+		t.Errorf("consequence is not 1 statements. got = %d\n", lenConsequence)
+	}
+
+	consequence, ok := exp.Consequence().Statements()[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ExpressionStatement. got = %T",
+			exp.Consequence().Statements()[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if exp.Alternative().Ok() {
+		t.Errorf("Got an unexpected alternative. got = %+v", exp.Alternative().Content())
+	}
+}
+
+func TestIfElseExpression(t *testing.T) {
+	input := `if (x < y) { x } else { y }`
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got = %d\n",
+			1, program.Statements)
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got = %T",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got = %T",
+			stmt.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Condition(), "x", "<", "y") {
+		return
+	}
+
+	if lenConsequence := len(exp.Consequence().Statements()); lenConsequence != 1 {
+		t.Errorf("consequence is not 1 statements. got = %d\n", lenConsequence)
+	}
+
+	consequence, ok := exp.Consequence().Statements()[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ExpressionStatement. got = %T",
+			exp.Consequence().Statements()[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if !exp.Alternative().Ok() {
+		t.Errorf("Got an unexpected alternative. got = %+v", exp.Alternative().Content())
+	}
+}

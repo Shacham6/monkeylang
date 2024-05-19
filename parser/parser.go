@@ -44,6 +44,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.BANG:   p.parsePrefixExpression,
 		token.MINUS:  p.parsePrefixExpression,
 		token.LPAREN: p.parseGroupedExpression,
+		token.IF:     p.parseIfExpression,
 	}
 
 	p.infixParseFns = map[token.TokenType]infixParseFn{
@@ -61,40 +62,6 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 
 	return p
-}
-
-func (p *Parser) parseGroupedExpression() ast.Expression {
-	p.nextToken() // Skip the start i.e "("
-
-	exp := p.parseExpression(LOWEST)
-
-	if !p.expectPeek(token.RPAREN) {
-		return nil // Should we return an error? IS this even an error?
-	}
-
-	return exp
-}
-
-func (p *Parser) parsePrefixExpression() ast.Expression {
-	token := p.curToken
-	operator := p.curToken.Literal
-
-	p.nextToken()
-
-	right := p.parseExpression(PREFIX)
-
-	return ast.NewPrefixExpression(token, operator, right)
-}
-
-func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
-	token := p.curToken
-	operator := p.curToken.Literal
-
-	precedence := p.curPrecedence()
-	p.nextToken()
-	right := p.parseExpression(precedence)
-
-	return ast.NewInfixExpression(token, left, operator, right)
 }
 
 func (p *Parser) nextToken() {
@@ -197,6 +164,90 @@ func (p *Parser) parseExpression(precedence Precedence) ast.Expression {
 	}
 
 	return leftExp
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken() // Skip the start i.e "("
+
+	exp := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil // Should we return an error? IS this even an error?
+	}
+
+	return exp
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	token := p.curToken
+	operator := p.curToken.Literal
+
+	p.nextToken()
+
+	right := p.parseExpression(PREFIX)
+
+	return ast.NewPrefixExpression(token, operator, right)
+}
+
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	token := p.curToken
+	operator := p.curToken.Literal
+
+	precedence := p.curPrecedence()
+	p.nextToken()
+	right := p.parseExpression(precedence)
+
+	return ast.NewInfixExpression(token, left, operator, right)
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+	tok := p.curToken
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	p.nextToken()
+	condition := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	consequence := p.parseBlockStatement()
+
+	var alternative *ast.BlockStatement
+	if p.peekTokenIs(token.ELSE) {
+		p.nextToken()
+		if !p.expectPeek(token.LBRACE) {
+			return nil
+		}
+
+		alternative = p.parseBlockStatement()
+	}
+
+	return ast.NewIfExpression(tok, condition, consequence, ast.NewIfExpressionAlternative(alternative))
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	blockToken := p.curToken
+	blockStatements := []ast.Statement{}
+
+	p.nextToken()
+
+	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			blockStatements = append(blockStatements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return ast.NewBlockStatement(blockToken, blockStatements)
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
