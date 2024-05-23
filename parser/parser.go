@@ -306,6 +306,11 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 		p.nextToken()
 		p.nextToken()
 
+		if p.curToken.Type != token.IDENT {
+			p.errors = append(p.errors, "argument in function definition must be an identifier")
+			continue
+		}
+
 		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 		identifiers = append(identifiers, ident)
 	}

@@ -5,6 +5,7 @@ import (
 	"monkey/ast"
 	"monkey/lexer"
 	"monkey/parser"
+	"monkey/testutils"
 	"testing"
 )
 
@@ -541,17 +542,11 @@ func TestIfExpression(t *testing.T) {
 			1, program.Statements)
 	}
 
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got = %T",
-			program.Statements[0])
-	}
+	stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0],
+		"program.Statements[0] is not ast.ExpressionStatement")
 
-	exp, ok := stmt.Expression.(*ast.IfExpression)
-	if !ok {
-		t.Fatalf("stmt.Expression is not ast.IfExpression. got = %T",
-			stmt.Expression)
-	}
+	exp := testutils.CheckIsA[ast.IfExpression](t, stmt.Expression,
+		"stmt.Expression is no ast.IfExpression")
 
 	if !testInfixExpression(t, exp.Condition(), "x", "<", "y") {
 		return
@@ -659,4 +654,41 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	}
 
 	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}
+
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{
+			input:          "fn() {};",
+			expectedParams: []string{},
+		},
+		{
+			input:          "fn(x) {};",
+			expectedParams: []string{"x"},
+		},
+		{
+			input:          "fn(x, y, z) {};",
+			expectedParams: []string{"x", "y", "z"},
+		},
+	}
+
+	for _, tt := range tests {
+		p := parser.New(lexer.New(tt.input))
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0], "program.Statements[0] is not an ast.ExpressionStatment")
+		function := testutils.CheckIsA[ast.FunctionLiteral](t, stmt.Expression, "stmt.Expression is not a ast.FunctionLiteral")
+
+		if len(function.Parameters()) != len(tt.expectedParams) {
+			t.Errorf("length parameters wrong. want = %d, got = %d", len(tt.expectedParams), len(function.Parameters()))
+		}
+
+		for i, ident := range tt.expectedParams {
+			testLiteralExpression(t, function.Parameters()[i], ident)
+		}
+	}
 }
