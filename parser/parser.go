@@ -57,12 +57,43 @@ func New(l *lexer.Lexer) *Parser {
 		token.NOT_EQ:  p.parseInfixExpression,
 		token.LT:      p.parseInfixExpression,
 		token.GT:      p.parseInfixExpression,
+		token.LPAREN:  p.parseCallExpression,
 	}
 
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	arguments := p.parseCallArguments()
+	exp := ast.NewCallExpression(p.curToken, function, arguments)
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
 }
 
 func (p *Parser) nextToken() {
