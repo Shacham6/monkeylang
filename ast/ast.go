@@ -57,7 +57,12 @@ func (ls *LetStatement) TokenLiteral() string {
 }
 
 func (ls *LetStatement) String() string {
-	return fmt.Sprintf("%s %s = %s;", ls.TokenLiteral(), ls.Name.TokenLiteral(), ls.Value.String())
+	return fmt.Sprintf(
+		"%s %s = %s;",
+		ls.TokenLiteral(),
+		ls.Name.TokenLiteral(),
+		ls.Value.String(),
+	)
 }
 
 type ReturnStatement struct {
