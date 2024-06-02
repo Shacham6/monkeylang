@@ -24,6 +24,7 @@ var precedences = map[token.TokenType]Precedence{
 	token.MINUS:   SUM,
 	token.SLASH:   PRODUCT,
 	token.ASTERIX: PRODUCT,
+	token.LPAREN:  CALL,
 }
 
 func (p *Parser) peekPrecedence() Precedence {

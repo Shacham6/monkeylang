@@ -89,7 +89,7 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 		args = append(args, p.parseExpression(LOWEST))
 	}
 
-	if p.expectPeek(token.RPAREN) {
+	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
