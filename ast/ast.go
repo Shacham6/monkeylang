@@ -61,8 +61,8 @@ func (ls *LetStatement) String() string {
 }
 
 type ReturnStatement struct {
-	Token token.Token // the RETURN token.
-	Value Expression
+	Token       token.Token // the RETURN token.
+	ReturnValue Expression
 }
 
 func (rs *ReturnStatement) statementNode() {}
@@ -72,7 +72,7 @@ func (rs *ReturnStatement) TokenLiteral() string {
 }
 
 func (rs *ReturnStatement) String() string {
-	return fmt.Sprintf("%s %s;", rs.TokenLiteral(), rs.Value.String())
+	return fmt.Sprintf("%s %s;", rs.TokenLiteral(), rs.ReturnValue.String())
 }
 
 type Identifier struct {
