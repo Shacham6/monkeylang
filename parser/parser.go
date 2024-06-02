@@ -159,13 +159,6 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
-
-	// // TODO: We're skipping the expressions until we
-	// // encounter as semicolon
-	// for !p.curTokenIs(token.SEMICOLON) {
-	// 	p.nextToken()
-	// }
-
 	return stmt
 }
 
