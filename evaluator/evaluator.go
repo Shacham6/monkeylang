@@ -22,6 +22,8 @@ func Eval(node ast.Node) object.Object {
 		return evalIntegerLiteral(v)
 	case *ast.Boolean:
 		return evalBooleanLiteral(v)
+	case *ast.Identifier:
+		return evalIdentifier(v)
 	}
 	panic(fmt.Sprintf("Cannot handle node of type %T", node))
 }
@@ -49,4 +51,11 @@ func evalBooleanLiteral(b *ast.Boolean) object.Object {
 		return &TRUE
 	}
 	return &FALSE
+}
+
+func evalIdentifier(i *ast.Identifier) object.Object {
+	if i.Value == "null" {
+		return &NULL
+	}
+	panic("don't support identifiers yet")
 }
