@@ -34,3 +34,8 @@ func TestEvalBooleanExpression(t *testing.T) {
 		evaluatortest.CheckBooleanObject(t, evaluated, tt.expected)
 	}
 }
+
+func TestEvalNullExpression(t *testing.T) {
+	evaluated := evaluatortest.DoEval("null")
+	evaluatortest.CheckNullObject(t, evaluated)
+}

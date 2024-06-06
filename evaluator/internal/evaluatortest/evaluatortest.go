@@ -35,3 +35,8 @@ func CheckBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	}
 	return true
 }
+
+func CheckNullObject(t *testing.T, obj object.Object) bool {
+	testutils.CheckIsA[object.Null](t, obj, "obj is not object.Null")
+	return true
+}
