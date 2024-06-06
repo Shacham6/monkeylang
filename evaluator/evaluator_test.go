@@ -1,11 +1,7 @@
 package evaluator_test
 
 import (
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
-	"monkey/testutils"
+	"monkey/evaluator/internal/evaluatortest"
 	"testing"
 )
 
@@ -19,24 +15,22 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := testEval(tt.input)
-		testIntegerObject(t, evaluated, tt.expected)
+		evaluated := evaluatortest.DoEval(tt.input)
+		evaluatortest.CheckIntegerObject(t, evaluated, tt.expected)
 	}
 }
 
-func testEval(input string) object.Object {
-	p := parser.New(lexer.New(input))
-	program := p.ParseProgram()
-
-	return evaluator.Eval(program)
-}
-
-func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
-	result := testutils.CheckIsA[object.Integer](t, obj, "obj is not object.Integer")
-	if result.Value != expected {
-		t.Fatalf("object has wrong value. got = %d, expect = %d",
-			result.Value, expected)
-		return false
+func TestEvalBooleanExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true", true},
+		{"false", false},
 	}
-	return false
+
+	for _, tt := range tests {
+		evaluated := evaluatortest.DoEval(tt.input)
+		evaluatortest.CheckBooleanObject(t, evaluated, tt.expected)
+	}
 }

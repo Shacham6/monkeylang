@@ -1,8 +1,15 @@
 package evaluator
 
 import (
+	"fmt"
 	"monkey/ast"
 	"monkey/object"
+)
+
+var (
+	NULL  = object.Null{}
+	TRUE  = object.Boolean{Value: true}
+	FALSE = object.Boolean{Value: false}
 )
 
 func Eval(node ast.Node) object.Object {
@@ -13,8 +20,10 @@ func Eval(node ast.Node) object.Object {
 		return evalExpressionStatement(v)
 	case *ast.IntegerLiteral:
 		return evalIntegerLiteral(v)
+	case *ast.Boolean:
+		return evalBooleanLiteral(v)
 	}
-	return nil
+	panic(fmt.Sprintf("Cannot handle node of type %T", node))
 }
 
 func evalProgram(program *ast.Program) object.Object {
@@ -33,4 +42,11 @@ func evalExpressionStatement(es *ast.ExpressionStatement) object.Object {
 
 func evalIntegerLiteral(il *ast.IntegerLiteral) object.Object {
 	return &object.Integer{Value: il.Value}
+}
+
+func evalBooleanLiteral(b *ast.Boolean) object.Object {
+	if b.Value() {
+		return &TRUE
+	}
+	return &FALSE
 }
