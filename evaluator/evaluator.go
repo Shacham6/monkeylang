@@ -24,6 +24,8 @@ func Eval(node ast.Node) object.Object {
 		return evalBooleanLiteral(v)
 	case *ast.Identifier:
 		return evalIdentifier(v)
+	case *ast.PrefixExpression:
+		return evalPrefixExpression(v)
 	}
 	panic(fmt.Sprintf("Cannot handle node of type %T", node))
 }
@@ -57,5 +59,32 @@ func evalIdentifier(i *ast.Identifier) object.Object {
 	if i.Value == "null" {
 		return &NULL
 	}
-	panic("don't support identifiers yet")
+	panic("We don't support identifiers yet")
+}
+
+func evalPrefixExpression(p *ast.PrefixExpression) object.Object {
+	right := Eval(p.Right)
+	return resolvePrefixResult(p.Operator, right)
+}
+
+func resolvePrefixResult(op string, right object.Object) object.Object {
+	switch op {
+	case "!":
+		return evalBangOperatorExpression(right)
+	}
+
+	panic(fmt.Sprintf("Operator %s not supported yet", op))
+}
+
+func evalBangOperatorExpression(right object.Object) object.Object {
+	switch right {
+	case &TRUE:
+		return &FALSE
+	case &FALSE:
+		return &TRUE
+	case &NULL:
+		return &TRUE
+	default:
+		return &FALSE
+	}
 }
