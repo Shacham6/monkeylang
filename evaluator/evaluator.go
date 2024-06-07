@@ -71,6 +71,8 @@ func resolvePrefixResult(op string, right object.Object) object.Object {
 	switch op {
 	case "!":
 		return evalBangOperatorExpression(right)
+	case "-":
+		return evalMinusOperatorExpression(right)
 	}
 
 	panic(fmt.Sprintf("Operator %s not supported yet", op))
@@ -87,4 +89,12 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	default:
 		return &FALSE
 	}
+}
+
+func evalMinusOperatorExpression(right object.Object) object.Object {
+	if right.Type() != object.INTEGER_OBJ {
+		panic("We don't support minus prefix operators on non numbers currently")
+	}
+	value := right.(*object.Integer).Value
+	return &object.Integer{Value: -value}
 }
