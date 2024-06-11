@@ -13,7 +13,6 @@ var (
 )
 
 func Eval(node ast.Node) object.Object {
-	fmt.Println(node.String())
 	switch v := node.(type) {
 	case *ast.Program:
 		return evalProgram(v)
@@ -83,6 +82,10 @@ func evalInfixExpression(op string, left object.Object, right object.Object) obj
 	switch {
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(op, left, right)
+	case op == "==":
+		return nativeBoolToBooleanObject(left == right)
+	case op == "!=":
+		return nativeBoolToBooleanObject(left != right)
 	}
 	panic(fmt.Sprintf("Operator '%s' not supported between %s and %s", op, left.Type(), right.Type()))
 }
