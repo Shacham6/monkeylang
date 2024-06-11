@@ -13,6 +13,7 @@ var (
 )
 
 func Eval(node ast.Node) object.Object {
+	fmt.Println(node.String())
 	switch v := node.(type) {
 	case *ast.Program:
 		return evalProgram(v)
@@ -21,7 +22,7 @@ func Eval(node ast.Node) object.Object {
 	case *ast.IntegerLiteral:
 		return evalIntegerLiteral(v)
 	case *ast.Boolean:
-		return evalBooleanLiteral(v)
+		return nativeBoolToBooleanObject(v.Value())
 	case *ast.Identifier:
 		return evalIdentifier(v)
 	case *ast.PrefixExpression:
@@ -53,8 +54,8 @@ func evalIntegerLiteral(il *ast.IntegerLiteral) object.Object {
 	return &object.Integer{Value: il.Value}
 }
 
-func evalBooleanLiteral(b *ast.Boolean) object.Object {
-	if b.Value() {
+func nativeBoolToBooleanObject(b bool) object.Object {
+	if b {
 		return &TRUE
 	}
 	return &FALSE
@@ -99,6 +100,18 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 		return &object.Integer{Value: leftVal * rightVal}
 	case "/":
 		return &object.Integer{Value: leftVal / rightVal}
+	case "<":
+		return nativeBoolToBooleanObject(leftVal < rightVal)
+	case "<=":
+		return nativeBoolToBooleanObject(leftVal <= rightVal)
+	case ">":
+		return nativeBoolToBooleanObject(leftVal > rightVal)
+	case ">=":
+		return nativeBoolToBooleanObject(leftVal >= rightVal)
+	case "==":
+		return nativeBoolToBooleanObject(leftVal == rightVal)
+	case "!=":
+		return nativeBoolToBooleanObject(leftVal != rightVal)
 	}
 	panic("Operator '%s' not supported between integers")
 }

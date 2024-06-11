@@ -41,11 +41,20 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}{
 		{"true", true},
 		{"false", false},
+		{"1 == 1", true},
+		{"2 > 1", true},
+		{"2 < 1", false},
+		{"1 != 1", false},
+		{"1 >= 1", true},
+		{"1 <= 1", true},
+		{"1 != 2", true},
 	}
 
 	for _, tt := range tests {
-		evaluated := evaluatortest.DoEval(tt.input)
-		evaluatortest.CheckBooleanObject(t, evaluated, tt.expected)
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := evaluatortest.DoEval(tt.input)
+			evaluatortest.CheckBooleanObject(t, evaluated, tt.expected)
+		})
 	}
 }
 
