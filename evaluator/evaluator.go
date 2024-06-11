@@ -25,7 +25,12 @@ func Eval(node ast.Node) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(v)
 	case *ast.PrefixExpression:
-		return evalPrefixExpression(v)
+		right := Eval(v.Right)
+		return evalPrefixExpression(v.Operator, right)
+	case *ast.InfixExpression:
+		left := Eval(v.Left)
+		right := Eval(v.Right)
+		return evalInfixExpression(v.Operator, left, right)
 	}
 	panic(fmt.Sprintf("Cannot handle node of type %T", node))
 }
@@ -62,12 +67,7 @@ func evalIdentifier(i *ast.Identifier) object.Object {
 	panic("We don't support identifiers yet")
 }
 
-func evalPrefixExpression(p *ast.PrefixExpression) object.Object {
-	right := Eval(p.Right)
-	return resolvePrefixResult(p.Operator, right)
-}
-
-func resolvePrefixResult(op string, right object.Object) object.Object {
+func evalPrefixExpression(op string, right object.Object) object.Object {
 	switch op {
 	case "!":
 		return evalBangOperatorExpression(right)
@@ -76,6 +76,31 @@ func resolvePrefixResult(op string, right object.Object) object.Object {
 	}
 
 	panic(fmt.Sprintf("Operator %s not supported yet", op))
+}
+
+func evalInfixExpression(op string, left object.Object, right object.Object) object.Object {
+	switch {
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return evalIntegerInfixExpression(op, left, right)
+	}
+	panic(fmt.Sprintf("Operator '%s' not supported between %s and %s", op, left.Type(), right.Type()))
+}
+
+func evalIntegerInfixExpression(operator string, left object.Object, right object.Object) object.Object {
+	leftVal := left.(*object.Integer).Value
+	rightVal := right.(*object.Integer).Value
+
+	switch operator {
+	case "+":
+		return &object.Integer{Value: leftVal + rightVal}
+	case "-":
+		return &object.Integer{Value: leftVal - rightVal}
+	case "*":
+		return &object.Integer{Value: leftVal * rightVal}
+	case "/":
+		return &object.Integer{Value: leftVal / rightVal}
+	}
+	panic("Operator '%s' not supported between integers")
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {
