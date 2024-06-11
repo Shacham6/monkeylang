@@ -56,7 +56,9 @@ func New(l *lexer.Lexer) *Parser {
 		token.EQ:      p.parseInfixExpression,
 		token.NOT_EQ:  p.parseInfixExpression,
 		token.LT:      p.parseInfixExpression,
+		token.LT_EQ:   p.parseInfixExpression,
 		token.GT:      p.parseInfixExpression,
+		token.GT_EQ:   p.parseInfixExpression,
 		token.LPAREN:  p.parseCallExpression,
 	}
 

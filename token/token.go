@@ -31,7 +31,9 @@ const (
 	ASTERIX = "ASTERIX"
 	SLASH   = "SLASH"
 	LT      = "LT"
+	LT_EQ   = "LT_EQ"
 	GT      = "GT"
+	GT_EQ   = "GT_EQ"
 	EQ      = "EQ"
 	NOT_EQ  = "NOT_EQ"
 

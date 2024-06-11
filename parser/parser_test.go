@@ -165,8 +165,6 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 	return true
 }
 
-// func testFunctionLiteral(t *testing.T, s ast.Statement, parameters []*ast.Identifier)
-
 func checkAmountOfStatements(t *testing.T, program *ast.Program, expected int) {
 	if got := len(program.Statements); got != expected {
 		t.Fatalf("program has wrong amount of statements. expected = %d, got = %d", expected, got)
@@ -399,6 +397,7 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"true == true", true, "==", true},
 		{"true != false", true, "!=", false},
 		{"false == false", false, "==", false},
+		{"1 >= 2", 1, ">=", 2},
 	}
 
 	for _, tt := range infixTests {
