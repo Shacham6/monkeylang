@@ -15,7 +15,7 @@ var (
 func Eval(node ast.Node) object.Object {
 	switch v := node.(type) {
 	case *ast.Program:
-		return evalStatements(v.Statements)
+		return evalProgram(v)
 	case *ast.ExpressionStatement:
 		return evalExpressionStatement(v)
 	case *ast.IntegerLiteral:
@@ -32,11 +32,42 @@ func Eval(node ast.Node) object.Object {
 		right := Eval(v.Right)
 		return evalInfixExpression(v.Operator, left, right)
 	case *ast.BlockStatement:
-		return evalStatements(v.Statements())
+		return evalBlockStatement(v)
 	case *ast.IfExpression:
 		return evalIfExpression(v)
+	case *ast.ReturnStatement:
+		val := Eval(v.ReturnValue)
+		return &object.ReturnValue{Value: val}
 	}
 	panic(fmt.Sprintf("Cannot handle node of type %T", node))
+}
+
+func evalProgram(p *ast.Program) object.Object {
+	var result object.Object
+
+	for _, statement := range p.Statements {
+		result = Eval(statement)
+
+		if returnValue, ok := result.(*object.ReturnValue); ok {
+			return returnValue.Value
+		}
+	}
+
+	return result
+}
+
+func evalBlockStatement(block *ast.BlockStatement) object.Object {
+	var result object.Object
+
+	for _, statement := range block.Statements() {
+		result = Eval(statement)
+
+		if result != nil && result.Type() == object.RETURN_VALUE_OBJ {
+			return result
+		}
+	}
+
+	return result
 }
 
 func evalIfExpression(ie *ast.IfExpression) object.Object {
@@ -62,16 +93,6 @@ func isTruthy(obj object.Object) bool {
 	default:
 		return true
 	}
-}
-
-func evalStatements(statements []ast.Statement) object.Object {
-	var result object.Object
-
-	for _, statement := range statements {
-		result = Eval(statement)
-	}
-
-	return result
 }
 
 func evalExpressionStatement(es *ast.ExpressionStatement) object.Object {

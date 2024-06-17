@@ -87,7 +87,7 @@ func TestBangOperator(t *testing.T) {
 	}
 }
 
-func TestIfElseEvaluator(t *testing.T) {
+func TestIfElseExpression(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected interface{}
@@ -110,6 +110,33 @@ func TestIfElseEvaluator(t *testing.T) {
 			} else {
 				evaluatortest.CheckNullObject(t, evaluated)
 			}
+		})
+	}
+}
+
+func TestReturnStatement(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"return 1;", 1},
+		{"return 1; 2", 1},
+		{"return 2 * 3; 1", 6},
+		{"1; return 2; 3", 2},
+		{`
+			if (1 > 0) {
+				if (2 > 1) {
+					return 10;
+				}
+				return 1;
+			}
+		`, 10},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := evaluatortest.DoEval(tt.input)
+			evaluatortest.CheckIntegerObject(t, evaluated, tt.expected)
 		})
 	}
 }
