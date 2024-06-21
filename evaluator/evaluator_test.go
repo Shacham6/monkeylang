@@ -2,6 +2,8 @@ package evaluator_test
 
 import (
 	"monkey/evaluator/internal/evaluatortest"
+	"monkey/object"
+	"monkey/testutils"
 	"testing"
 )
 
@@ -137,6 +139,55 @@ func TestReturnStatement(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			evaluated := evaluatortest.DoEval(tt.input)
 			evaluatortest.CheckIntegerObject(t, evaluated, tt.expected)
+		})
+	}
+}
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{
+			"5 + true;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"5 + true; 5;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"-true",
+			"unknown operator: -BOOLEAN",
+		},
+		{
+			"true + false;",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"if (10 > 1) { true + false; }",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			`
+			if (10 > 1) {
+				if (10 > 2) {
+					return true + false;
+				}
+			}
+			`, "unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := evaluatortest.DoEval(tt.input)
+
+			errObj := testutils.CheckIsA[object.Error](t, evaluated, "evaluated is not an error object.")
+
+			if errObj.Message != tt.expectedMessage {
+				t.Errorf("wrong error message. expected = %q, got = %q", tt.expectedMessage, errObj.Message)
+			}
 		})
 	}
 }

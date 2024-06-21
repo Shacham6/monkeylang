@@ -1,3 +1,6 @@
+// This file contains within it few panics. Some of them are due to pending the error handling - and a
+// a real legitimate few are legitimate (like the one in `Eval`). That's the explanation.
+
 package evaluator
 
 import (
@@ -123,9 +126,11 @@ func evalPrefixExpression(op string, right object.Object) object.Object {
 		return evalBangOperatorExpression(right)
 	case "-":
 		return evalMinusOperatorExpression(right)
+	default:
+		return newError("unknown operator: %s%s", op, right.Type())
 	}
 
-	panic(fmt.Sprintf("Operator %s not supported yet", op))
+	// panic(fmt.Sprintf("Operator %s not supported yet", op))
 }
 
 func evalInfixExpression(op string, left object.Object, right object.Object) object.Object {
@@ -136,8 +141,12 @@ func evalInfixExpression(op string, left object.Object, right object.Object) obj
 		return nativeBoolToBooleanObject(left == right)
 	case op == "!=":
 		return nativeBoolToBooleanObject(left != right)
+	case left.Type() != right.Type():
+		return newError("type mismatch: %s %s %s", left.Type(), op, right.Type())
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), op, right.Type())
 	}
-	panic(fmt.Sprintf("Operator '%s' not supported between %s and %s", op, left.Type(), right.Type()))
+	// panic(fmt.Sprintf("Operator '%s' not supported between %s and %s", op, left.Type(), right.Type()))
 }
 
 func evalIntegerInfixExpression(operator string, left object.Object, right object.Object) object.Object {
@@ -165,8 +174,10 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 		return nativeBoolToBooleanObject(leftVal == rightVal)
 	case "!=":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
-	panic("Operator '%s' not supported between integers")
+	// panic("Operator '%s' not supported between integers")
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {
@@ -184,7 +195,8 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 
 func evalMinusOperatorExpression(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJ {
-		panic("We don't support minus prefix operators on non numbers currently")
+		return newError("unknown operator: -%s", right.Type())
+		// panic("We don't support minus prefix operators on non numbers currently")
 	}
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
