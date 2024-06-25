@@ -13,7 +13,7 @@ func DoEval(input string) object.Object {
 	p := parser.New(lexer.New(input))
 	program := p.ParseProgram()
 
-	return evaluator.Eval(program)
+	return evaluator.Eval(program, object.NewEnvironment())
 }
 
 func CheckIntegerObject(t *testing.T, obj object.Object, expected int64) bool {

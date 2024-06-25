@@ -22,42 +22,49 @@ func isError(obj object.Object) bool {
 	return false
 }
 
-func Eval(node ast.Node) object.Object {
+func Eval(node ast.Node, env *object.Environment) object.Object {
+	// make sure all branches return a value
 	switch v := node.(type) {
 	case *ast.Program:
-		return evalProgram(v)
+		return evalProgram(v, env)
 	case *ast.ExpressionStatement:
-		return evalExpressionStatement(v)
+		return evalExpressionStatement(v, env)
 	case *ast.IntegerLiteral:
 		return evalIntegerLiteral(v)
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(v.Value())
 	case *ast.Identifier:
-		return evalIdentifier(v)
+		return evalIdentifier(v, env)
+	case *ast.LetStatement:
+		val := Eval(v.Value, env)
+		if isError(val) {
+			return val
+		}
+		env.Set(v.Name.Value, val)
+		return &NULL
 	case *ast.PrefixExpression:
-		right := Eval(v.Right)
+		right := Eval(v.Right, env)
 		if isError(right) {
 			return right
 		}
 		return evalPrefixExpression(v.Operator, right)
 	case *ast.InfixExpression:
-		left := Eval(v.Left)
+		left := Eval(v.Left, env)
 		if isError(left) {
 			return left
 		}
 
-		right := Eval(v.Right)
+		right := Eval(v.Right, env)
 		if isError(right) {
 			return right
 		}
-
 		return evalInfixExpression(v.Operator, left, right)
 	case *ast.BlockStatement:
-		return evalBlockStatement(v)
+		return evalBlockStatement(v, env)
 	case *ast.IfExpression:
-		return evalIfExpression(v)
+		return evalIfExpression(v, env)
 	case *ast.ReturnStatement:
-		val := Eval(v.ReturnValue)
+		val := Eval(v.ReturnValue, env)
 		if isError(val) {
 			return val
 		}
@@ -67,11 +74,11 @@ func Eval(node ast.Node) object.Object {
 	panic(fmt.Sprintf("Cannot handle node of type %T", node))
 }
 
-func evalProgram(p *ast.Program) object.Object {
+func evalProgram(p *ast.Program, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range p.Statements {
-		result = Eval(statement)
+		result = Eval(statement, env)
 
 		switch v := result.(type) {
 		case *object.ReturnValue:
@@ -84,11 +91,11 @@ func evalProgram(p *ast.Program) object.Object {
 	return result
 }
 
-func evalBlockStatement(block *ast.BlockStatement) object.Object {
+func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, statement := range block.Statements() {
-		result = Eval(statement)
+		result = Eval(statement, env)
 
 		if result != nil {
 			rt := result.Type()
@@ -102,16 +109,16 @@ func evalBlockStatement(block *ast.BlockStatement) object.Object {
 	return result
 }
 
-func evalIfExpression(ie *ast.IfExpression) object.Object {
-	condition := Eval(ie.Condition())
+func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
+	condition := Eval(ie.Condition(), env)
 	if isError(condition) {
 		return condition
 	}
 
 	if isTruthy(condition) {
-		return Eval(ie.Consequence())
+		return Eval(ie.Consequence(), env)
 	} else if ie.Alternative().Ok() {
-		return Eval(ie.Alternative().Content())
+		return Eval(ie.Alternative().Content(), env)
 	} else {
 		return &NULL
 	}
@@ -130,8 +137,8 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func evalExpressionStatement(es *ast.ExpressionStatement) object.Object {
-	return Eval(es.Expression)
+func evalExpressionStatement(es *ast.ExpressionStatement, env *object.Environment) object.Object {
+	return Eval(es.Expression, env)
 }
 
 func evalIntegerLiteral(il *ast.IntegerLiteral) object.Object {
@@ -145,11 +152,15 @@ func nativeBoolToBooleanObject(b bool) object.Object {
 	return &FALSE
 }
 
-func evalIdentifier(i *ast.Identifier) object.Object {
+func evalIdentifier(i *ast.Identifier, env *object.Environment) object.Object {
 	if i.Value == "null" {
 		return &NULL
 	}
-	panic("We don't support identifiers yet")
+	val, ok := env.Get(i.Value)
+	if !ok {
+		return newError("identifier not found: %s", i.Value)
+	}
+	return val
 }
 
 func evalPrefixExpression(op string, right object.Object) object.Object {
