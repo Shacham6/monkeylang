@@ -1,6 +1,3 @@
-// This file contains within it few panics. Some of them are due to pending the error handling - and a
-// a real legitimate few are legitimate (like the one in `Eval`). That's the explanation.
-
 package evaluator
 
 import (
@@ -103,7 +100,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return &object.ReturnValue{Value: val}
 	}
-	panic(fmt.Sprintf("Cannot handle node of type %T", node))
+	return newError(fmt.Sprintf("Cannot handle node of type %T", node))
 }
 
 func evalProgram(p *ast.Program, env *object.Environment) object.Object {
@@ -204,8 +201,6 @@ func evalPrefixExpression(op string, right object.Object) object.Object {
 	default:
 		return newError("unknown operator: %s%s", op, right.Type())
 	}
-
-	// panic(fmt.Sprintf("Operator %s not supported yet", op))
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
@@ -244,12 +239,13 @@ func evalInfixExpression(op string, left object.Object, right object.Object) obj
 		return nativeBoolToBooleanObject(left == right)
 	case op == "!=":
 		return nativeBoolToBooleanObject(left != right)
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(op, left, right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), op, right.Type())
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), op, right.Type())
 	}
-	// panic(fmt.Sprintf("Operator '%s' not supported between %s and %s", op, left.Type(), right.Type()))
 }
 
 func evalIntegerInfixExpression(operator string, left object.Object, right object.Object) object.Object {
@@ -280,7 +276,6 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
-	// panic("Operator '%s' not supported between integers")
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {
@@ -296,10 +291,18 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	}
 }
 
+func evalStringInfixExpression(op string, left object.Object, right object.Object) object.Object {
+	if op != "+" {
+		return newError("unknown operator: %s %s %s", left.Type(), op, right.Type())
+	}
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	return &object.String{Value: leftVal + rightVal}
+}
+
 func evalMinusOperatorExpression(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJ {
 		return newError("unknown operator: -%s", right.Type())
-		// panic("We don't support minus prefix operators on non numbers currently")
 	}
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}

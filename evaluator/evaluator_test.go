@@ -177,6 +177,10 @@ func TestErrorHandling(t *testing.T) {
 			}
 			`, "unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{
+			`"hello" - "world"`,
+			"unknown operator: STRING - STRING",
+		},
 	}
 
 	for _, tt := range tests {
@@ -259,5 +263,16 @@ func TestStringLiteral(t *testing.T) {
 
 	if str.Value != "praise the sun" {
 		t.Errorf("str.Value is not %q. got = %q", "praise the sun", str.Value)
+	}
+}
+
+func TestStringConcatenation(t *testing.T) {
+	input := `"hello" + " " + "world"`
+
+	evaluated := evaluatortest.DoEval(input)
+	str := testutils.CheckIsA[object.String](t, evaluated, "evaluated is not a object.String")
+
+	if str.Value != "hello world" {
+		t.Errorf("String has wrong value. got = %q", str.Value)
 	}
 }
