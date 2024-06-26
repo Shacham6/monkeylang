@@ -250,3 +250,14 @@ func TestFunctionApplication(t *testing.T) {
 		evaluatortest.CheckIntegerObject(t, evaluatortest.DoEval(tt.input), tt.expected)
 	}
 }
+
+func TestStringLiteral(t *testing.T) {
+	input := `"praise the sun"`
+
+	evaluated := evaluatortest.DoEval(input)
+	str := testutils.CheckIsA[object.String](t, evaluated, "evaluated is not object.String")
+
+	if str.Value != "praise the sun" {
+		t.Errorf("str.Value is not %q. got = %q", "praise the sun", str.Value)
+	}
+}

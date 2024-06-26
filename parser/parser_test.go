@@ -232,6 +232,21 @@ return 993322;
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0], "progam.Statements[0] is not ast.ExpressionStatement")
+
+	literal := testutils.CheckIsA[ast.StringLiteral](t, stmt.Expression, "stmt.Expression is not a ast.StringLiteral")
+
+	if literal.Value != "hello world" {
+		t.Errorf("literal.Value not %q. got = %q", "hello world", literal.Value)
+	}
+}
+
 func TestIdentifierExpression(t *testing.T) {
 	input := `foobar;`
 	p := parser.New(lexer.New(input))

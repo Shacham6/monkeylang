@@ -21,13 +21,13 @@ func Parse(input string) (*ast.Program, []string) {
 type Parser struct {
 	l *lexer.Lexer
 
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
+
 	curToken  token.Token
 	peekToken token.Token
 
 	errors []string
-
-	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -46,6 +46,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.LPAREN:   p.parseGroupedExpression,
 		token.IF:       p.parseIfExpression,
 		token.FUNCTION: p.parseFunctionLiteral,
+		token.STRING:   p.parseStringLiteral,
 	}
 
 	p.infixParseFns = map[token.TokenType]infixParseFn{
@@ -291,6 +292,13 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 
 func (p *Parser) parseIdentifier() ast.Expression {
 	return ast.NewIdentifier(p.curToken, p.curToken.Literal)
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {

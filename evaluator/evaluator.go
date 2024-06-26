@@ -37,6 +37,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(v.Value())
 
+	case *ast.StringLiteral:
+		return &object.String{Value: v.Value}
+
 	case *ast.Identifier:
 		return evalIdentifier(v, env)
 
