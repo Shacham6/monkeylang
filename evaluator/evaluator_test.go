@@ -276,3 +276,44 @@ func TestStringConcatenation(t *testing.T) {
 		t.Errorf("String has wrong value. got = %q", str.Value)
 	}
 }
+
+type resultInInt struct {
+	n int64
+}
+
+func (r *resultInInt) checkEvaluated(t *testing.T, obj object.Object) bool {
+	return evaluatortest.CheckIntegerObject(t, obj, r.n)
+}
+
+type resultInError struct {
+	message string
+}
+
+func (r *resultInError) checkEvaluated(t *testing.T, obj object.Object) bool {
+	return evaluatortest.CheckErrorObject(t, obj, r.message)
+}
+
+type checkEvaluated interface {
+	checkEvaluated(t *testing.T, obj object.Object) bool
+}
+
+func TestBuiltinFunction(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected checkEvaluated
+	}{
+		{`len("")`, &resultInInt{0}},
+		{`len("four")`, &resultInInt{4}},
+		{`len(1)`, &resultInError{"argument to `len` not supported, got INTEGER"}},
+		{`len("one", "two")`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := evaluatortest.DoEval(tt.input)
+			if !tt.expected.checkEvaluated(t, evaluated) {
+				return
+			}
+		})
+	}
+}

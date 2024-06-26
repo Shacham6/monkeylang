@@ -26,6 +26,16 @@ func CheckIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	return true
 }
 
+func CheckErrorObject(t *testing.T, obj object.Object, expectedMessage string) bool {
+	result := testutils.CheckIsA[object.Error](t, obj, "obj is not object.Error")
+	if result.Message != expectedMessage {
+		t.Fatalf("error has wrong message. got = %s, expect = %s",
+			result.Message, expectedMessage)
+		return false
+	}
+	return true
+}
+
 func CheckBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	result := testutils.CheckIsA[object.Boolean](t, obj, "obj is not object.Boolean")
 	if result.Value != expected {
