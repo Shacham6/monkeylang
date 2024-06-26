@@ -213,3 +213,22 @@ func TestLetStatements(t *testing.T) {
 		})
 	}
 }
+
+func TestFunctionObject(t *testing.T) {
+	input := `fn(x) {x + 2;};`
+	evaluated := evaluatortest.DoEval(input)
+	fn := testutils.CheckIsA[object.Function](t, evaluated, "evaluated is not a 'object.Function'")
+
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("function has wrong parameters. Parameters = %+v", fn.Parameters)
+	}
+
+	if fn.Parameters[0].String() != "x" {
+		t.Fatalf("parameter is not 'x', got = %q", fn.Parameters[0])
+	}
+
+	expectedBody := "(x + 2);"
+	if fn.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got = %q", expectedBody, fn.Body.String())
+	}
+}

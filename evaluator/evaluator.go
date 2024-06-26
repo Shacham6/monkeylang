@@ -42,6 +42,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.Set(v.Name.Value, val)
 		return &NULL
+	case *ast.FunctionLiteral:
+		params := v.Parameters()
+		body := v.Body()
+		return &object.Function{Parameters: params, Env: env, Body: body}
 	case *ast.PrefixExpression:
 		right := Eval(v.Right, env)
 		if isError(right) {
@@ -53,7 +57,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(left) {
 			return left
 		}
-
 		right := Eval(v.Right, env)
 		if isError(right) {
 			return right
@@ -68,7 +71,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-
 		return &object.ReturnValue{Value: val}
 	}
 	panic(fmt.Sprintf("Cannot handle node of type %T", node))
