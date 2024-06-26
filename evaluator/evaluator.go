@@ -27,14 +27,19 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch v := node.(type) {
 	case *ast.Program:
 		return evalProgram(v, env)
+
 	case *ast.ExpressionStatement:
 		return evalExpressionStatement(v, env)
+
 	case *ast.IntegerLiteral:
 		return evalIntegerLiteral(v)
+
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(v.Value())
+
 	case *ast.Identifier:
 		return evalIdentifier(v, env)
+
 	case *ast.LetStatement:
 		val := Eval(v.Value, env)
 		if isError(val) {
@@ -42,16 +47,35 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		env.Set(v.Name.Value, val)
 		return &NULL
+
 	case *ast.FunctionLiteral:
 		params := v.Parameters()
 		body := v.Body()
 		return &object.Function{Parameters: params, Env: env, Body: body}
+
+	case *ast.CallExpression:
+		function := Eval(v.Function(), env)
+		if isError(function) {
+			return function
+		}
+
+		args := []object.Object{}
+		for _, a := range v.Arguments() {
+			res := Eval(a, env)
+			if isError(res) {
+				return res
+			}
+			args = append(args, res)
+		}
+		return applyFunction(function, args)
+
 	case *ast.PrefixExpression:
 		right := Eval(v.Right, env)
 		if isError(right) {
 			return right
 		}
 		return evalPrefixExpression(v.Operator, right)
+
 	case *ast.InfixExpression:
 		left := Eval(v.Left, env)
 		if isError(left) {
@@ -62,10 +86,13 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(v.Operator, left, right)
+
 	case *ast.BlockStatement:
 		return evalBlockStatement(v, env)
+
 	case *ast.IfExpression:
 		return evalIfExpression(v, env)
+
 	case *ast.ReturnStatement:
 		val := Eval(v.ReturnValue, env)
 		if isError(val) {
@@ -176,6 +203,34 @@ func evalPrefixExpression(op string, right object.Object) object.Object {
 	}
 
 	// panic(fmt.Sprintf("Operator %s not supported yet", op))
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("trying to call what is not a function: %s", fn.Type())
+	}
+	extendedEnv := extendFunctionEnv(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapReturnValue(evaluated)
+}
+
+func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
+	env := fn.Env.NewScoped()
+
+	for paramIdx, param := range fn.Parameters {
+		env.Set(param.Value, args[paramIdx])
+	}
+
+	return env
+}
+
+func unwrapReturnValue(obj object.Object) object.Object {
+	returnValue, ok := obj.(*object.ReturnValue)
+	if ok {
+		return returnValue.Value
+	}
+	return obj
 }
 
 func evalInfixExpression(op string, left object.Object, right object.Object) object.Object {
