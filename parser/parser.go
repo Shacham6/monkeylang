@@ -47,6 +47,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.IF:       p.parseIfExpression,
 		token.FUNCTION: p.parseFunctionLiteral,
 		token.STRING:   p.parseStringLiteral,
+		token.LBRACKET: p.parseArrayLiteral,
 	}
 
 	p.infixParseFns = map[token.TokenType]infixParseFn{
@@ -69,34 +70,39 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
-func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
-	arguments := p.parseCallArguments()
-	exp := ast.NewCallExpression(p.curToken, function, arguments)
-	return exp
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+	return array
 }
 
-func (p *Parser) parseCallArguments() []ast.Expression {
-	args := []ast.Expression{}
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
 
-	if p.peekTokenIs(token.RPAREN) {
+	if p.peekTokenIs(end) {
 		p.nextToken()
-		return args
+		return list
 	}
 
 	p.nextToken()
-	args = append(args, p.parseExpression(LOWEST))
+	list = append(list, p.parseExpression(LOWEST))
 
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 		p.nextToken()
-		args = append(args, p.parseExpression(LOWEST))
+		list = append(list, p.parseExpression(LOWEST))
 	}
 
-	if !p.expectPeek(token.RPAREN) {
+	if !p.expectPeek(end) {
 		return nil
 	}
+	return list
+}
 
-	return args
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	arguments := p.parseExpressionList(token.RPAREN)
+	exp := ast.NewCallExpression(p.curToken, function, arguments)
+	return exp
 }
 
 func (p *Parser) nextToken() {
@@ -146,14 +152,12 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt := &ast.LetStatement{Token: p.curToken}
 
 	if !p.expectPeek(token.IDENT) {
-		p.peekError(token.IDENT)
 		return nil
 	}
 
 	stmt.Name = ast.NewIdentifier(p.curToken, p.curToken.Literal)
 
 	if !p.expectPeek(token.ASSIGN) {
-		p.peekError(token.ASSIGN)
 		return nil
 	}
 
@@ -318,14 +322,12 @@ func (p *Parser) parseBoolean() ast.Expression {
 func (p *Parser) parseFunctionLiteral() ast.Expression {
 	curToken := p.curToken // the "fn" token
 	if !p.expectPeek(token.LPAREN) {
-		p.peekError(token.LPAREN)
 		return nil
 	}
 
 	params := p.parseFunctionParameters()
 
 	if !p.expectPeek(token.LBRACE) {
-		p.peekError(token.LBRACE)
 		return nil
 	}
 
@@ -362,7 +364,6 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	}
 
 	if !p.expectPeek(token.RPAREN) {
-		p.peekError(token.RPAREN)
 		return nil
 	}
 
@@ -382,6 +383,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	}
+	p.peekError(t)
 	return false
 }
 

@@ -742,3 +742,21 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, arguments[1], 2, "*", 3)
 	testInfixExpression(t, arguments[2], 4, "+", 5)
 }
+
+func TestParsingArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 3, 3 + 3]"
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0],
+		"program.Statements[0] is not ast.ExpressionStatement")
+	array := testutils.CheckIsA[ast.ArrayLiteral](t, stmt.Expression,
+		"stmt.Expression is not ast.ArrayLiteral")
+	if len(array.Elements) != 3 {
+		t.Fatalf("len(array.Elements) is not 3. got = %d", len(array.Elements))
+	}
+	testIntegerLiteral(t, array.Elements[0], 1)
+	testInfixExpression(t, array.Elements[1], 2, "*", 3)
+	testInfixExpression(t, array.Elements[2], 3, "+", 3)
+}
