@@ -9,6 +9,7 @@ const (
 	LOWEST      Precedence = iota
 	EQUALS      Precedence = iota // == or !=
 	LESSGREATER Precedence = iota // > or <
+	INDEX       Precedence = iota // collection[X]
 	SUM         Precedence = iota // - or +
 	PRODUCT     Precedence = iota // / (slash) or *
 	PREFIX      Precedence = iota // -X or !X
@@ -16,17 +17,18 @@ const (
 )
 
 var precedences = map[token.TokenType]Precedence{
-	token.EQ:      EQUALS,
-	token.NOT_EQ:  EQUALS,
-	token.LT:      LESSGREATER,
-	token.LT_EQ:   LESSGREATER,
-	token.GT:      LESSGREATER,
-	token.GT_EQ:   LESSGREATER,
-	token.PLUS:    SUM,
-	token.MINUS:   SUM,
-	token.SLASH:   PRODUCT,
-	token.ASTERIX: PRODUCT,
-	token.LPAREN:  CALL,
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.LT_EQ:    LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.GT_EQ:    LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
+	token.ASTERIX:  PRODUCT,
+	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX,
 }
 
 func (p *Parser) peekPrecedence() Precedence {

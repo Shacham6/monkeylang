@@ -51,23 +51,40 @@ func New(l *lexer.Lexer) *Parser {
 	}
 
 	p.infixParseFns = map[token.TokenType]infixParseFn{
-		token.PLUS:    p.parseInfixExpression,
-		token.MINUS:   p.parseInfixExpression,
-		token.SLASH:   p.parseInfixExpression,
-		token.ASTERIX: p.parseInfixExpression,
-		token.EQ:      p.parseInfixExpression,
-		token.NOT_EQ:  p.parseInfixExpression,
-		token.LT:      p.parseInfixExpression,
-		token.LT_EQ:   p.parseInfixExpression,
-		token.GT:      p.parseInfixExpression,
-		token.GT_EQ:   p.parseInfixExpression,
-		token.LPAREN:  p.parseCallExpression,
+		token.PLUS:     p.parseInfixExpression,
+		token.MINUS:    p.parseInfixExpression,
+		token.SLASH:    p.parseInfixExpression,
+		token.ASTERIX:  p.parseInfixExpression,
+		token.EQ:       p.parseInfixExpression,
+		token.NOT_EQ:   p.parseInfixExpression,
+		token.LT:       p.parseInfixExpression,
+		token.LT_EQ:    p.parseInfixExpression,
+		token.GT:       p.parseInfixExpression,
+		token.GT_EQ:    p.parseInfixExpression,
+		token.LPAREN:   p.parseCallExpression,
+		token.LBRACKET: p.parseIndexExpression,
 	}
 
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	curToken := p.curToken
+
+	p.nextToken()
+
+	index := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return ast.NewIndexExpression(
+		curToken, left, index,
+	)
 }
 
 func (p *Parser) parseArrayLiteral() ast.Expression {
