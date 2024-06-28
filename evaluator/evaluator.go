@@ -40,6 +40,17 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(v, env)
 
+	case *ast.IndexExpression:
+		leftObj := Eval(v.Left(), env)
+		if isError(leftObj) {
+			return leftObj
+		}
+		indexObj := Eval(v.Index(), env)
+		if isError(indexObj) {
+			return indexObj
+		}
+		return evalIndexExpression(leftObj, indexObj)
+
 	case *ast.ArrayLiteral:
 		evaluatedElements := []object.Object{}
 		for _, elNode := range v.Elements {
@@ -112,6 +123,26 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.ReturnValue{Value: val}
 	}
 	return newError(fmt.Sprintf("Cannot handle node of type %T", node))
+}
+
+func evalIndexExpression(left object.Object, index object.Object) object.Object {
+	switch {
+	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+		return evalArrayIndexExpression(left, index)
+	default:
+		return newError("index operator not supported: %s", left.Type())
+	}
+}
+
+func evalArrayIndexExpression(left object.Object, index object.Object) object.Object {
+	arr := left.(*object.Array)
+	idx := index.(*object.Integer).Value
+	max := int64(len(arr.Elements) - 1)
+
+	if idx < 0 || idx > max {
+		return &NULL
+	}
+	return arr.Elements[idx]
 }
 
 func evalProgram(p *ast.Program, env *object.Environment) object.Object {

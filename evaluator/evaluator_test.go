@@ -293,6 +293,12 @@ func (r *resultInError) checkEvaluated(t *testing.T, obj object.Object) bool {
 	return evaluatortest.CheckErrorObject(t, obj, r.message)
 }
 
+type resultInNil struct{}
+
+func (r *resultInNil) checkEvaluated(t *testing.T, obj object.Object) bool {
+	return evaluatortest.CheckNullObject(t, obj)
+}
+
 type checkEvaluated interface {
 	checkEvaluated(t *testing.T, obj object.Object) bool
 }
@@ -329,4 +335,47 @@ func TestArrayLiteral(t *testing.T) {
 	evaluatortest.CheckIntegerObject(t, result.Elements[0], 1)
 	evaluatortest.CheckIntegerObject(t, result.Elements[1], 2)
 	evaluatortest.CheckIntegerObject(t, result.Elements[2], 3)
+}
+
+func TestIndexExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected checkEvaluated
+	}{
+		{
+			"[1, 2, 3][0]",
+			&resultInInt{1},
+		},
+		{
+			"[1, 2, 3][1]",
+			&resultInInt{2},
+		},
+		{
+			"[1, 2, 3][2]",
+			&resultInInt{3},
+		},
+		{
+			"let i = 0; [0][i]",
+			&resultInInt{0},
+		},
+		{
+			"[0, 1, 2][1 + 1]",
+			&resultInInt{2},
+		},
+		{
+			"[1, 2, 3][3]",
+			&resultInNil{},
+		},
+		{
+			"[1, 2, 3][-1]",
+			&resultInNil{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := evaluatortest.DoEval(tt.input)
+			tt.expected.checkEvaluated(t, evaluated)
+		})
+	}
 }

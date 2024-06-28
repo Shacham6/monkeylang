@@ -31,13 +31,4 @@ func (*IndexExpression) expressionNode() {}
 
 func (i *IndexExpression) String() string {
 	return fmt.Sprintf("(index %s %s)", i.left.String(), i.index.String())
-	// var out bytes.Buffer
-	//
-	// out.WriteString("(")
-	// out.WriteString(i.left.String())
-	// out.WriteString("[")
-	// out.WriteString(i.index.String())
-	// out.WriteString("])")
-	//
-	// return out.String()
 }
