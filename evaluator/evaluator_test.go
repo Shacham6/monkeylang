@@ -312,6 +312,7 @@ func TestBuiltinFunction(t *testing.T) {
 		{`len("four")`, &resultInInt{4}},
 		{`len(1)`, &resultInError{"argument to `len` not supported, got INTEGER"}},
 		{`len("one", "two")`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
+		{`len([1, 2, 3])`, &resultInInt{3}},
 	}
 
 	for _, tt := range tests {
