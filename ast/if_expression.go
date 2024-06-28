@@ -41,7 +41,7 @@ func (i *IfExpression) TokenLiteral() string {
 func (i *IfExpression) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("if")
+	out.WriteString("(if")
 	out.WriteString(i.condition.String())
 	out.WriteString(" ")
 	out.WriteString(i.consequence.String())
@@ -50,6 +50,7 @@ func (i *IfExpression) String() string {
 		out.WriteString("else ")
 		out.WriteString(i.alternative.String())
 	}
+	out.WriteString(")")
 
 	return out.String()
 }

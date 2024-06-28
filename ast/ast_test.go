@@ -17,7 +17,7 @@ func TestAstToString(t *testing.T) {
 	}
 
 	s := ls.String()
-	expect := "let x = y;"
+	expect := "(let x y)"
 	if s != expect {
 		t.Fatalf("ast.String(), got = %s, expect = %s", s, expect)
 	}

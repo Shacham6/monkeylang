@@ -33,11 +33,16 @@ func (p *Program) TokenLiteral() string {
 }
 
 func (p *Program) String() string {
-	var out strings.Builder
+	// var out strings.Builder
+	// for _, s := range p.Statements {
+	// 	out.WriteString(s.String())
+	// }
+	// return out.String()
+	statementLines := []string{}
 	for _, s := range p.Statements {
-		out.WriteString(s.String())
+		statementLines = append(statementLines, s.String())
 	}
-	return out.String()
+	return fmt.Sprintf("(program %s)", strings.Join(statementLines, " "))
 }
 
 type LetStatement struct {
@@ -58,11 +63,16 @@ func (ls *LetStatement) TokenLiteral() string {
 
 func (ls *LetStatement) String() string {
 	return fmt.Sprintf(
-		"%s %s = %s;",
-		ls.TokenLiteral(),
-		ls.Name.TokenLiteral(),
+		"(let %s %s)",
+		ls.Name.String(),
 		ls.Value.String(),
 	)
+	// return fmt.Sprintf(
+	// 	"%s %s = %s;",
+	// 	ls.TokenLiteral(),
+	// 	ls.Name.TokenLiteral(),
+	// 	ls.Value.String(),
+	// )
 }
 
 type ReturnStatement struct {
@@ -77,7 +87,8 @@ func (rs *ReturnStatement) TokenLiteral() string {
 }
 
 func (rs *ReturnStatement) String() string {
-	return fmt.Sprintf("%s %s;", rs.TokenLiteral(), rs.ReturnValue.String())
+	return fmt.Sprintf("(return %s)", rs.ReturnValue.String())
+	// return fmt.Sprintf("%s %s;", rs.TokenLiteral(), rs.ReturnValue.String())
 }
 
 type Identifier struct {
@@ -96,6 +107,7 @@ func (i *Identifier) TokenLiteral() string {
 }
 
 func (i *Identifier) String() string {
+	// return fmt.Sprintf("(ident %s)", i.Value)
 	return i.Value
 }
 
@@ -115,6 +127,7 @@ func (i *IntegerLiteral) TokenLiteral() string {
 }
 
 func (i IntegerLiteral) String() string {
+	// return fmt.Sprintf("(int %d)", i.Value)
 	return i.Token.Literal
 }
 
@@ -130,7 +143,8 @@ func (es *ExpressionStatement) TokenLiteral() string {
 }
 
 func (es *ExpressionStatement) String() string {
-	return fmt.Sprintf("%s;", es.Expression.String())
+	return fmt.Sprintf("(expr %s)", es.Expression.String())
+	// return fmt.Sprintf("%s;", es.Expression.String())
 }
 
 type PrefixExpression struct {
@@ -150,7 +164,8 @@ func (p *PrefixExpression) TokenLiteral() string {
 }
 
 func (p *PrefixExpression) String() string {
-	return fmt.Sprintf("(%s%s)", p.Operator, p.Right.String())
+	return fmt.Sprintf("(prefix %s %s)", p.Operator, p.Right.String())
+	// return fmt.Sprintf("(%s%s)", p.Operator, p.Right.String())
 }
 
 type InfixExpression struct {
@@ -171,7 +186,8 @@ func (i *InfixExpression) TokenLiteral() string {
 }
 
 func (i *InfixExpression) String() string {
-	return fmt.Sprintf("(%s %s %s)", i.Left.String(), i.Operator, i.Right)
+	return fmt.Sprintf("(infix %s %s %s)", i.Left.String(), i.Operator, i.Right.String())
+	// return fmt.Sprintf("(%s %s %s)", i.Left.String(), i.Operator, i.Right)
 }
 
 type Boolean struct {

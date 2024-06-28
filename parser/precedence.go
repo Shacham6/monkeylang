@@ -9,11 +9,11 @@ const (
 	LOWEST      Precedence = iota
 	EQUALS      Precedence = iota // == or !=
 	LESSGREATER Precedence = iota // > or <
-	INDEX       Precedence = iota // collection[X]
 	SUM         Precedence = iota // - or +
 	PRODUCT     Precedence = iota // / (slash) or *
 	PREFIX      Precedence = iota // -X or !X
 	CALL        Precedence = iota // myFunction(X)
+	INDEX       Precedence = iota // collection[X]
 )
 
 var precedences = map[token.TokenType]Precedence{

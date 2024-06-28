@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"bytes"
+	"fmt"
 	"monkey/token"
 	"strings"
 )
@@ -18,15 +18,21 @@ func (a *ArrayLiteral) TokenLiteral() string {
 }
 
 func (a *ArrayLiteral) String() string {
-	var out bytes.Buffer
-
-	elements := []string{}
+	// var out bytes.Buffer
+	//
+	// elements := []string{}
+	// for _, el := range a.Elements {
+	// 	elements = append(elements, el.String())
+	// }
+	// out.WriteString("[")
+	// out.WriteString(strings.Join(elements, ", "))
+	// out.WriteString("]")
+	//
+	// return out.String()
+	items := []string{}
 	for _, el := range a.Elements {
-		elements = append(elements, el.String())
+		items = append(items, el.String())
 	}
-	out.WriteString("[")
-	out.WriteString(strings.Join(elements, ", "))
-	out.WriteString("]")
 
-	return out.String()
+	return fmt.Sprintf("[%s]", strings.Join(items, " "))
 }

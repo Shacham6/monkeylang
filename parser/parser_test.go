@@ -447,103 +447,103 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}{
 		{
 			input:    "-a * b",
-			expected: "((-a) * b);",
+			expected: "(program (expr (infix (prefix - a) * b)))",
 		},
 		{
 			input:    "!-a",
-			expected: "(!(-a));",
+			expected: "(program (expr (prefix ! (prefix - a))))",
 		},
 		{
 			input:    "a + b + c",
-			expected: "((a + b) + c);",
+			expected: "(program (expr (infix (infix a + b) + c)))",
 		},
 		{
 			input:    "a + b - c",
-			expected: "((a + b) - c);",
+			expected: "(program (expr (infix (infix a + b) - c)))",
 		},
 		{
 			input:    "a * b * c",
-			expected: "((a * b) * c);",
+			expected: "(program (expr (infix (infix a * b) * c)))",
 		},
 		{
 			input:    "a * b / c",
-			expected: "((a * b) / c);",
+			expected: "(program (expr (infix (infix a * b) / c)))",
 		},
 		{
 			input:    "a + b / c",
-			expected: "(a + (b / c));",
+			expected: "(program (expr (infix a + (infix b / c))))",
 		},
 		{
 			input:    "a + b * c + d / e - f",
-			expected: "(((a + (b * c)) + (d / e)) - f);",
+			expected: "(program (expr (infix (infix (infix a + (infix b * c)) + (infix d / e)) - f)))",
 		},
 		{
 			input:    "3 + 4; -5 * 5",
-			expected: "(3 + 4);((-5) * 5);",
+			expected: "(program (expr (infix 3 + 4)) (expr (infix (prefix - 5) * 5)))",
 		},
 		{
 			input:    "5 > 4 == 3 < 4",
-			expected: "((5 > 4) == (3 < 4));",
+			expected: "(program (expr (infix (infix 5 > 4) == (infix 3 < 4))))",
 		},
 		{
 			input:    "3 + 4 * 5 == 3 * 1 + 4 * 5",
-			expected: "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)));",
+			expected: "(program (expr (infix (infix 3 + (infix 4 * 5)) == (infix (infix 3 * 1) + (infix 4 * 5)))))",
 		},
 		{
 			input:    "true",
-			expected: "true;",
+			expected: "(program (expr true))",
 		},
 		{
 			input:    "false",
-			expected: "false;",
+			expected: "(program (expr false))",
 		},
 		{
 			input:    "3 > 5 == false",
-			expected: "((3 > 5) == false);",
+			expected: "(program (expr (infix (infix 3 > 5) == false)))",
 		},
 		{
 			input:    "3 < 5 == true",
-			expected: "((3 < 5) == true);",
+			expected: "(program (expr (infix (infix 3 < 5) == true)))",
 		},
 		{
 			input:    "1 + (2 + 3) + 4",
-			expected: "((1 + (2 + 3)) + 4);",
+			expected: "(program (expr (infix (infix 1 + (infix 2 + 3)) + 4)))",
 		},
 		{
 			input:    "(5 + 5) * 2",
-			expected: "((5 + 5) * 2);",
+			expected: "(program (expr (infix (infix 5 + 5) * 2)))",
 		},
 		{
 			input:    "2 / (5 + 5)",
-			expected: "(2 / (5 + 5));",
+			expected: "(program (expr (infix 2 / (infix 5 + 5))))",
 		},
 		{
 			input:    "-(5 + 5)",
-			expected: "(-(5 + 5));",
+			expected: "(program (expr (prefix - (infix 5 + 5))))",
 		},
 		{
 			input:    "!(true == true)",
-			expected: "(!(true == true));",
+			expected: "(program (expr (prefix ! (infix true == true))))",
 		},
 		{
 			input:    "a + add(b * c) + d",
-			expected: "((a + add((b * c))) + d);",
+			expected: "(program (expr (infix (infix a + (call add (infix b * c))) + d)))",
 		},
 		{
 			input:    "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-			expected: "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)));",
+			expected: "(program (expr (call add a b 1 (infix 2 * 3) (infix 4 + 5) (call add 6 (infix 7 * 8)))))",
 		},
 		{
 			input:    "add(a + b + c * d / f + g)",
-			expected: "add((((a + b) + ((c * d) / f)) + g));",
+			expected: "(program (expr (call add (infix (infix (infix a + b) + (infix (infix c * d) / f)) + g))))",
 		},
 		{
 			input:    "a * [1, 2, 3, 4][b * c] * d",
-			expected: "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+			expected: "(program (expr (infix (infix a * (index [1 2 3 4] (infix b * c))) * d)))",
 		},
 		{
 			input:    "add(a * b[2], b[1], 2 * [1, 2][1])",
-			expected: "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+			expected: "(program (expr (call add (infix a * (index b 2)) (index b 1) (infix 2 * (index [1 2] 1)))))",
 		},
 	}
 

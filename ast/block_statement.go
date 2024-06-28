@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"monkey/token"
 )
 
@@ -31,5 +32,5 @@ func (b *BlockStatement) String() string {
 		out.WriteString(s.String())
 	}
 
-	return out.String()
+	return fmt.Sprintf("(block %s)", out.String())
 }

@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"bytes"
+	"fmt"
 	"monkey/token"
 	"strings"
 )
@@ -25,17 +25,19 @@ func (*CallExpression) expressionNode() {}
 func (c *CallExpression) TokenLiteral() string { return c.token.Literal }
 
 func (c *CallExpression) String() string {
-	var out bytes.Buffer
+	// var out bytes.Buffer
 
 	args := []string{}
 	for _, a := range c.arguments {
 		args = append(args, a.String())
 	}
 
-	out.WriteString(c.function.String())
-	out.WriteString("(")
-	out.WriteString(strings.Join(args, ", "))
-	out.WriteString(")")
+	return fmt.Sprintf("(call %s %s)", c.function.String(), strings.Join(args, " "))
 
-	return out.String()
+	// out.WriteString(c.function.String())
+	// out.WriteString("(")
+	// out.WriteString(strings.Join(args, ", "))
+	// out.WriteString(")")
+	//
+	// return out.String()
 }
