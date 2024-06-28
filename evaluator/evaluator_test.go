@@ -308,11 +308,28 @@ func TestBuiltinFunction(t *testing.T) {
 		input    string
 		expected checkEvaluated
 	}{
+		// Tests for `len`
 		{`len("")`, &resultInInt{0}},
 		{`len("four")`, &resultInInt{4}},
 		{`len(1)`, &resultInError{"argument to `len` not supported, got INTEGER"}},
 		{`len("one", "two")`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
 		{`len([1, 2, 3])`, &resultInInt{3}},
+
+		// Tests for `first`
+		{`first([1, 2])`, &resultInInt{1}},
+		{`first([2, 1])`, &resultInInt{2}},
+		{`first([])`, &resultInNil{}},
+		{`first([], [])`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
+		{`first([], [], [])`, &resultInError{"wrong number of arguments. got = 3, want = 1"}},
+		{`first(123)`, &resultInError{"argument to `first` must be an ARRAY, got INTEGER"}},
+
+		// Tests for `last`
+		{`last([1, 2])`, &resultInInt{2}},
+		{`last([2, 1])`, &resultInInt{1}},
+		{`last([])`, &resultInNil{}},
+		{`last([], [])`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
+		{`last([], [], [])`, &resultInError{"wrong number of arguments. got = 3, want = 1"}},
+		{`last(123)`, &resultInError{"argument to `last` must be an ARRAY, got INTEGER"}},
 	}
 
 	for _, tt := range tests {
