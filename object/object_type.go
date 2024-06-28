@@ -11,4 +11,5 @@ const (
 	STRING_OBJ       ObjectType = "STRING"
 	BUILTIN_OBJ      ObjectType = "BUILTIN"
 	ERROR_OBJ        ObjectType = "ERROR"
+	ARRAY_OBJ        ObjectType = "ARRAY"
 )

@@ -40,6 +40,17 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(v, env)
 
+	case *ast.ArrayLiteral:
+		evaluatedElements := []object.Object{}
+		for _, elNode := range v.Elements {
+			elObject := Eval(elNode, env)
+			if isError(elObject) {
+				return elObject
+			}
+			evaluatedElements = append(evaluatedElements, elObject)
+		}
+		return &object.Array{Elements: evaluatedElements}
+
 	case *ast.LetStatement:
 		val := Eval(v.Value, env)
 		if isError(val) {

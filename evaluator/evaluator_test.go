@@ -317,3 +317,16 @@ func TestBuiltinFunction(t *testing.T) {
 		})
 	}
 }
+
+func TestArrayLiteral(t *testing.T) {
+	input := "[1, 1 + 1, 1 + 1 + 1]"
+	evaluated := evaluatortest.DoEval(input)
+	result := testutils.CheckIsA[object.Array](t, evaluated, "evaluated is not a object.Array")
+	if len(result.Elements) != 3 {
+		t.Fatalf("array has wrong amount of elements. got = %d", len(result.Elements))
+	}
+
+	evaluatortest.CheckIntegerObject(t, result.Elements[0], 1)
+	evaluatortest.CheckIntegerObject(t, result.Elements[1], 2)
+	evaluatortest.CheckIntegerObject(t, result.Elements[2], 3)
+}
