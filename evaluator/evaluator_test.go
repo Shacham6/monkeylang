@@ -1,7 +1,7 @@
 package evaluator_test
 
 import (
-	"monkey/evaluator/internal/evaluatortest"
+	. "monkey/evaluator/internal/evaluatortest"
 	"monkey/object"
 	"monkey/testutils"
 	"testing"
@@ -31,8 +31,8 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := evaluatortest.DoEval(tt.input)
-		evaluatortest.CheckIntegerObject(t, evaluated, tt.expected)
+		evaluated := DoEval(tt.input)
+		CheckIntegerObject(t, evaluated, tt.expected)
 	}
 }
 
@@ -59,15 +59,15 @@ func TestEvalBooleanExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluated := evaluatortest.DoEval(tt.input)
-			evaluatortest.CheckBooleanObject(t, evaluated, tt.expected)
+			evaluated := DoEval(tt.input)
+			CheckBooleanObject(t, evaluated, tt.expected)
 		})
 	}
 }
 
 func TestEvalNullExpression(t *testing.T) {
-	evaluated := evaluatortest.DoEval("null")
-	evaluatortest.CheckNullObject(t, evaluated)
+	evaluated := DoEval("null")
+	CheckNullObject(t, evaluated)
 }
 
 func TestBangOperator(t *testing.T) {
@@ -84,8 +84,8 @@ func TestBangOperator(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluated := evaluatortest.DoEval(tt.input)
-		evaluatortest.CheckBooleanObject(t, evaluated, tt.expected)
+		evaluated := DoEval(tt.input)
+		CheckBooleanObject(t, evaluated, tt.expected)
 	}
 }
 
@@ -105,12 +105,12 @@ func TestIfElseExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluated := evaluatortest.DoEval(tt.input)
+			evaluated := DoEval(tt.input)
 			integer, ok := tt.expected.(int)
 			if ok {
-				evaluatortest.CheckIntegerObject(t, evaluated, int64(integer))
+				CheckIntegerObject(t, evaluated, int64(integer))
 			} else {
-				evaluatortest.CheckNullObject(t, evaluated)
+				CheckNullObject(t, evaluated)
 			}
 		})
 	}
@@ -137,8 +137,8 @@ func TestReturnStatement(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluated := evaluatortest.DoEval(tt.input)
-			evaluatortest.CheckIntegerObject(t, evaluated, tt.expected)
+			evaluated := DoEval(tt.input)
+			CheckIntegerObject(t, evaluated, tt.expected)
 		})
 	}
 }
@@ -185,7 +185,7 @@ func TestErrorHandling(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluated := evaluatortest.DoEval(tt.input)
+			evaluated := DoEval(tt.input)
 
 			errObj := testutils.CheckIsA[object.Error](t, evaluated, "evaluated is not an error object.")
 
@@ -209,9 +209,9 @@ func TestLetStatements(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluatortest.CheckIntegerObject(
+			CheckIntegerObject(
 				t,
-				evaluatortest.DoEval(tt.input),
+				DoEval(tt.input),
 				tt.expected,
 			)
 		})
@@ -220,7 +220,7 @@ func TestLetStatements(t *testing.T) {
 
 func TestFunctionObject(t *testing.T) {
 	input := `fn(x) {x + 2;};`
-	evaluated := evaluatortest.DoEval(input)
+	evaluated := DoEval(input)
 	fn := testutils.CheckIsA[object.Function](t, evaluated, "evaluated is not a 'object.Function'")
 
 	if len(fn.Parameters) != 1 {
@@ -251,14 +251,14 @@ func TestFunctionApplication(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		evaluatortest.CheckIntegerObject(t, evaluatortest.DoEval(tt.input), tt.expected)
+		CheckIntegerObject(t, DoEval(tt.input), tt.expected)
 	}
 }
 
 func TestStringLiteral(t *testing.T) {
 	input := `"praise the sun"`
 
-	evaluated := evaluatortest.DoEval(input)
+	evaluated := DoEval(input)
 	str := testutils.CheckIsA[object.String](t, evaluated, "evaluated is not object.String")
 
 	if str.Value != "praise the sun" {
@@ -269,7 +269,7 @@ func TestStringLiteral(t *testing.T) {
 func TestStringConcatenation(t *testing.T) {
 	input := `"hello" + " " + "world"`
 
-	evaluated := evaluatortest.DoEval(input)
+	evaluated := DoEval(input)
 	str := testutils.CheckIsA[object.String](t, evaluated, "evaluated is not a object.String")
 
 	if str.Value != "hello world" {
@@ -277,65 +277,45 @@ func TestStringConcatenation(t *testing.T) {
 	}
 }
 
-type resultInInt struct {
-	n int64
-}
-
-func (r *resultInInt) checkEvaluated(t *testing.T, obj object.Object) bool {
-	return evaluatortest.CheckIntegerObject(t, obj, r.n)
-}
-
-type resultInError struct {
-	message string
-}
-
-func (r *resultInError) checkEvaluated(t *testing.T, obj object.Object) bool {
-	return evaluatortest.CheckErrorObject(t, obj, r.message)
-}
-
-type resultInNil struct{}
-
-func (r *resultInNil) checkEvaluated(t *testing.T, obj object.Object) bool {
-	return evaluatortest.CheckNullObject(t, obj)
-}
-
-type checkEvaluated interface {
-	checkEvaluated(t *testing.T, obj object.Object) bool
-}
-
 func TestBuiltinFunction(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected checkEvaluated
+		expected CheckEvaluated
 	}{
 		// Tests for `len`
-		{`len("")`, &resultInInt{0}},
-		{`len("four")`, &resultInInt{4}},
-		{`len(1)`, &resultInError{"argument to `len` not supported, got INTEGER"}},
-		{`len("one", "two")`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
-		{`len([1, 2, 3])`, &resultInInt{3}},
+		{`len("")`, NewResultInInt(0)},
+		{`len("four")`, NewResultInInt(4)},
+		{`len(1)`, NewResultInError("argument to `len` not supported, got INTEGER")},
+		{`len("one", "two")`, NewResultInError("wrong number of arguments. got = 2, want = 1")},
+		{`len([1, 2, 3])`, NewResultInInt(3)},
 
 		// Tests for `first`
-		{`first([1, 2])`, &resultInInt{1}},
-		{`first([2, 1])`, &resultInInt{2}},
-		{`first([])`, &resultInNil{}},
-		{`first([], [])`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
-		{`first([], [], [])`, &resultInError{"wrong number of arguments. got = 3, want = 1"}},
-		{`first(123)`, &resultInError{"argument to `first` must be an ARRAY, got INTEGER"}},
+		{`first([1, 2])`, NewResultInInt(1)},
+		{`first([2, 1])`, NewResultInInt(2)},
+		{`first([])`, NewResultInNil()},
+		{`first([], [])`, NewResultInError("wrong number of arguments. got = 2, want = 1")},
+		{`first([], [], [])`, NewResultInError("wrong number of arguments. got = 3, want = 1")},
+		{`first(123)`, NewResultInError("argument to `first` must be an ARRAY, got INTEGER")},
 
 		// Tests for `last`
-		{`last([1, 2])`, &resultInInt{2}},
-		{`last([2, 1])`, &resultInInt{1}},
-		{`last([])`, &resultInNil{}},
-		{`last([], [])`, &resultInError{"wrong number of arguments. got = 2, want = 1"}},
-		{`last([], [], [])`, &resultInError{"wrong number of arguments. got = 3, want = 1"}},
-		{`last(123)`, &resultInError{"argument to `last` must be an ARRAY, got INTEGER"}},
+		{`last([1, 2])`, NewResultInInt(2)},
+		{`last([2, 1])`, NewResultInInt(1)},
+		{`last([])`, NewResultInNil()},
+		{`last([], [])`, NewResultInError("wrong number of arguments. got = 2, want = 1")},
+		{`last([], [], [])`, NewResultInError("wrong number of arguments. got = 3, want = 1")},
+		{`last(123)`, NewResultInError("argument to `last` must be an ARRAY, got INTEGER")},
+
+		// Tests for `rest`
+		{`rest([1, 2, 3])`, NewResultInArray(NewResultInInt(2), NewResultInInt(3))},
+		{`rest([3, 2, 1])`, NewResultInArray(NewResultInInt(2), NewResultInInt(1))},
+		{`rest([])`, NewResultInNil()},
+		{`rest(123)`, NewResultInError("argument to `rest` must be an ARRAY, got INTEGER")},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluated := evaluatortest.DoEval(tt.input)
-			if !tt.expected.checkEvaluated(t, evaluated) {
+			evaluated := DoEval(tt.input)
+			if !tt.expected.CheckEvaluated(t, evaluated) {
 				return
 			}
 		})
@@ -344,56 +324,56 @@ func TestBuiltinFunction(t *testing.T) {
 
 func TestArrayLiteral(t *testing.T) {
 	input := "[1, 1 + 1, 1 + 1 + 1]"
-	evaluated := evaluatortest.DoEval(input)
+	evaluated := DoEval(input)
 	result := testutils.CheckIsA[object.Array](t, evaluated, "evaluated is not a object.Array")
 	if len(result.Elements) != 3 {
 		t.Fatalf("array has wrong amount of elements. got = %d", len(result.Elements))
 	}
 
-	evaluatortest.CheckIntegerObject(t, result.Elements[0], 1)
-	evaluatortest.CheckIntegerObject(t, result.Elements[1], 2)
-	evaluatortest.CheckIntegerObject(t, result.Elements[2], 3)
+	CheckIntegerObject(t, result.Elements[0], 1)
+	CheckIntegerObject(t, result.Elements[1], 2)
+	CheckIntegerObject(t, result.Elements[2], 3)
 }
 
 func TestIndexExpression(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected checkEvaluated
+		expected CheckEvaluated
 	}{
 		{
 			"[1, 2, 3][0]",
-			&resultInInt{1},
+			NewResultInInt(1),
 		},
 		{
 			"[1, 2, 3][1]",
-			&resultInInt{2},
+			NewResultInInt(2),
 		},
 		{
 			"[1, 2, 3][2]",
-			&resultInInt{3},
+			NewResultInInt(3),
 		},
 		{
 			"let i = 0; [0][i]",
-			&resultInInt{0},
+			NewResultInInt(0),
 		},
 		{
 			"[0, 1, 2][1 + 1]",
-			&resultInInt{2},
+			NewResultInInt(2),
 		},
 		{
 			"[1, 2, 3][3]",
-			&resultInNil{},
+			NewResultInNil(),
 		},
 		{
 			"[1, 2, 3][-1]",
-			&resultInNil{},
+			NewResultInNil(),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			evaluated := evaluatortest.DoEval(tt.input)
-			tt.expected.checkEvaluated(t, evaluated)
+			evaluated := DoEval(tt.input)
+			tt.expected.CheckEvaluated(t, evaluated)
 		})
 	}
 }
