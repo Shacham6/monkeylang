@@ -23,6 +23,8 @@ func (h *HashLiteral) TokenLiteral() string {
 	return h.token.Literal
 }
 
+func (h *HashLiteral) expressionNode() {}
+
 func (h *HashLiteral) String() string {
 	pairs := []string{}
 	for key, value := range h.pairs {
