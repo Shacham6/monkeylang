@@ -789,3 +789,69 @@ func TestParsingIndexExpression(t *testing.T) {
 		return
 	}
 }
+
+func TestParsingHashLiteralStringKeys(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0], "program.Statements[0] is not ast.ExpressionStatement")
+	hashLit := testutils.CheckIsA[ast.HashLiteral](t, stmt.Expression, "stmt.Expression is not ast.HashLiteral")
+
+	if len(hashLit.Pairs()) != 3 {
+		t.Errorf("hashLit.Pairs() has wrong length, got = %d, want = %d", len(hashLit.Pairs()), 3)
+	}
+
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	for key, value := range hashLit.Pairs() {
+		literal := testutils.CheckIsA[ast.StringLiteral](t, key, "key is not ast.StringLiteral")
+		expectedValue := expected[literal.Value]
+		testIntegerLiteral(t, value, expectedValue)
+	}
+}
+
+func TestParsingEmptyHashLiteral(t *testing.T) {
+	input := "{}"
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0], "program.Statements[0] is not ast.ExpressionStatement")
+	hashLit := testutils.CheckIsA[ast.HashLiteral](t, stmt.Expression, "stmt.Expression is not ast.HashLiteral")
+
+	if len(hashLit.Pairs()) != 0 {
+		t.Errorf("hashLit.Pairs() has wrong length, got = %d, expect = %d", len(hashLit.Pairs()), 0)
+	}
+}
+
+func TestParsingHashLiteralWithExpressions(t *testing.T) {
+	input := `{"one": 0 + 1, "two": 10 - 8}`
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := testutils.CheckIsA[ast.ExpressionStatement](t, program.Statements[0], "program.Statements[0] is not ast.ExpressionStatement")
+	hashLit := testutils.CheckIsA[ast.HashLiteral](t, stmt.Expression, "stmt.Expression is not ast.HashLiteral")
+
+	expected := map[string]func(expr ast.Expression){
+		"one": func(expr ast.Expression) {
+			testInfixExpression(t, expr, 0, "+", 1)
+		},
+		"two": func(expr ast.Expression) {
+			testInfixExpression(t, expr, 10, "-", 8)
+		},
+	}
+
+	for key, value := range hashLit.Pairs() {
+		keyString := testutils.CheckIsA[ast.StringLiteral](t, key, "key is not ast.StringLiteral")
+		expectedFunc := expected[keyString.Value]
+		expectedFunc(value)
+	}
+}
