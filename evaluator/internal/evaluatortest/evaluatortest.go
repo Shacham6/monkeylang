@@ -19,7 +19,7 @@ func DoEval(input string) object.Object {
 func CheckIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	result := testutils.CheckIsA[object.Integer](t, obj, "obj is not object.Integer")
 	if result.Value != expected {
-		t.Fatalf("object has wrong value. got = %d, expect = %d",
+		t.Errorf("object has wrong value. got = %d, expect = %d",
 			result.Value, expected)
 		return false
 	}
@@ -29,7 +29,7 @@ func CheckIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 func CheckErrorObject(t *testing.T, obj object.Object, expectedMessage string) bool {
 	result := testutils.CheckIsA[object.Error](t, obj, "obj is not object.Error")
 	if result.Message != expectedMessage {
-		t.Fatalf("error has wrong message. got = %s, expect = %s",
+		t.Errorf("error has wrong message. got = %s, expect = %s",
 			result.Message, expectedMessage)
 		return false
 	}
@@ -39,7 +39,7 @@ func CheckErrorObject(t *testing.T, obj object.Object, expectedMessage string) b
 func CheckBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	result := testutils.CheckIsA[object.Boolean](t, obj, "obj is not object.Boolean")
 	if result.Value != expected {
-		t.Fatalf("object has wrong value. got = %v, expect = %v",
+		t.Errorf("object has wrong value. got = %v, expect = %v",
 			result.Value, expected)
 		return false
 	}
@@ -48,11 +48,12 @@ func CheckBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 
 func CheckArrayValue(t *testing.T, obj object.Object, expected []CheckEvaluated) bool {
 	arr := testutils.CheckIsA[object.Array](t, obj, "obj is not object.Array")
+	hasFailed := false
 	if len(expected) != len(arr.Elements) {
 		t.Errorf("Lenth of arr is not the same expected. got = %d, want = %d", len(arr.Elements), len(expected))
+		hasFailed = true
 	}
 
-	hasFailed := false
 	for i, elObj := range arr.Elements {
 		if i >= len(expected) {
 			t.Errorf(
@@ -63,7 +64,9 @@ func CheckArrayValue(t *testing.T, obj object.Object, expected []CheckEvaluated)
 			continue
 		}
 
-		expected[i].CheckEvaluated(t, elObj)
+		if checkResult := expected[i].CheckEvaluated(t, elObj); !checkResult {
+			hasFailed = hasFailed && checkResult
+		}
 	}
 	return hasFailed
 }
