@@ -81,6 +81,21 @@ var builtins = map[string]*object.Builtin{
 			return &NULL
 		},
 	},
+
+	"push": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 2 {
+				return newWrongNumOfArgsError(len(args), 2)
+			}
+
+			if args[0].Type() != object.ARRAY_OBJ {
+				return newError("first argument to `push` must be an %s, got %s", object.ARRAY_OBJ, args[0].Type())
+			}
+
+			arr := args[0].(*object.Array)
+			return &object.Array{Elements: append(arr.Elements, args[1])}
+		},
+	},
 }
 
 func newWrongNumOfArgsError(got int, want int64) *object.Error {
