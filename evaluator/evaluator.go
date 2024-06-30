@@ -40,6 +40,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(v, env)
 
+	case *ast.HashLiteral:
+		return evalHashLiteral(v, env)
+
 	case *ast.IndexExpression:
 		leftObj := Eval(v.Left(), env)
 		if isError(leftObj) {
@@ -123,6 +126,31 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.ReturnValue{Value: val}
 	}
 	return newError(fmt.Sprintf("Cannot handle node of type %T", node))
+}
+
+func evalHashLiteral(h *ast.HashLiteral, env *object.Environment) object.Object {
+	pairs := map[object.HashKey]object.HashPair{}
+
+	for keyNode, valueNode := range h.Pairs() {
+		key := Eval(keyNode, env)
+		if isError(key) {
+			return key
+		}
+
+		hashed, err := key.HashKey()
+		if err != nil {
+			return err
+		}
+
+		value := Eval(valueNode, env)
+		if isError(value) {
+			return value
+		}
+
+		pairs[hashed] = object.HashPair{Key: key, Value: value}
+	}
+
+	return &object.Hash{Pairs: pairs}
 }
 
 func evalIndexExpression(left object.Object, index object.Object) object.Object {

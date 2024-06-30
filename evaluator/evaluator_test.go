@@ -387,3 +387,48 @@ func TestIndexExpression(t *testing.T) {
 		})
 	}
 }
+
+func TestHashLiteral(t *testing.T) {
+	input := `
+	let two = "two";
+	{
+		"one": 10 - 9,
+		two: 1 + 1,
+		"thr" + "ee": 6 / 2,
+		4: 4,
+		true: 5,
+		false: 6
+	}`
+
+	evaluated := DoEval(input)
+	result := testutils.CheckIsA[object.Hash](t, evaluated, "evaluated is not object.Hash")
+
+	expected := map[object.HashKey]int64{
+		mustHashKey(t, &object.String{Value: "one"}):   1,
+		mustHashKey(t, &object.String{Value: "two"}):   2,
+		mustHashKey(t, &object.String{Value: "three"}): 3,
+		mustHashKey(t, &object.Integer{Value: 4}):      4,
+		mustHashKey(t, &object.Boolean{Value: true}):   5,
+		mustHashKey(t, &object.Boolean{Value: false}):  6,
+	}
+
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("Hash has the wrong num of pairs. got = %d, want = %d", len(result.Pairs), len(expected))
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pairValue, ok := result.Pairs[expectedKey]
+		if !ok {
+			t.Errorf("no pair for given key in Pairs")
+		}
+		CheckIntegerObject(t, pairValue.Value, expectedValue)
+	}
+}
+
+func mustHashKey(t *testing.T, o object.Object) object.HashKey {
+	hashKey, err := o.HashKey()
+	if err != nil {
+		t.Fatalf("failed to calculate hash key for type %T", o)
+	}
+	return hashKey
+}
