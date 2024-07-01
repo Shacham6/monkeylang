@@ -6,5 +6,5 @@ type Object interface {
 
 	// Does not explicitly return the Hash object because some objects are not hashable,
 	// and so we want to maintain the ability to return an error instead.
-	HashKey() (HashKey, *Error)
+	HashKey() (HashKey, error)
 }

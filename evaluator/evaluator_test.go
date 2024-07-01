@@ -432,3 +432,28 @@ func mustHashKey(t *testing.T, o object.Object) object.HashKey {
 	}
 	return hashKey
 }
+
+func TestHashIndexExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected CheckEvaluated
+	}{
+		{`{"one": 1}["one"]`, NewResultInInt(1)},
+		{`{"tw" + "o": 2}["two"]`, NewResultInInt(2)},
+		{`{"one": 1}["on" + "e"]`, NewResultInInt(1)},
+		{`{}["nothing"]`, NewResultInNil()},
+		{`let d = {"one": 1}; d["one"]`, NewResultInInt(1)},
+		{`let k = "one"; {"one": 1}[k]`, NewResultInInt(1)},
+		{`{[1, 2, 3]: 1}`, NewResultInError("value of type ARRAY is not hashable")},
+		{`{1: 1}[1]`, NewResultInInt(1)},
+		{`{true: 1}`, NewResultInInt(1)},
+		{`{false: 1}`, NewResultInInt(1)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := DoEval(tt.input)
+			tt.expected.CheckEvaluated(t, evaluated)
+		})
+	}
+}

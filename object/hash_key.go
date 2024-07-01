@@ -34,7 +34,7 @@ func (h HashKey) Eq(o HashKey) bool {
 // Implementations for the various objects starting now
 //
 
-func (b *Boolean) HashKey() (HashKey, *Error) {
+func (b *Boolean) HashKey() (HashKey, error) {
 	var value uint64
 
 	if b.Value {
@@ -46,46 +46,50 @@ func (b *Boolean) HashKey() (HashKey, *Error) {
 	return NewHashKey(b.Type(), value), nil
 }
 
-func (i *Integer) HashKey() (HashKey, *Error) {
+func (i *Integer) HashKey() (HashKey, error) {
 	return NewHashKey(i.Type(), uint64(i.Value)), nil
 }
 
-func (s *String) HashKey() (HashKey, *Error) {
+func (s *String) HashKey() (HashKey, error) {
 	h := fnv.New64a()
 	h.Write([]byte(s.Value))
 	return NewHashKey(s.Type(), h.Sum64()), nil
 }
 
-func newTypeNotHashableError(obj Object) *Error {
-	return &Error{
-		Message: fmt.Sprintf("object of type '%T' is not hashable", obj.Type()),
-	}
+// func newTypeNotHashableError(obj Object) *Error {
+// 	return &Error{
+// 		Message: fmt.Sprintf("object of type '%T' is not hashable", obj.Type()),
+// 	}
+// }
+
+func newTypeNotHashableError(obj Object) error {
+	return fmt.Errorf("object of type '%T' is not hashable", obj.Type())
 }
 
-func (e *Error) HashKey() (HashKey, *Error) {
+func (e *Error) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(e)
 }
 
-func (a *Array) HashKey() (HashKey, *Error) {
+func (a *Array) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(a)
 }
 
-func (n *Null) HashKey() (HashKey, *Error) {
+func (n *Null) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(n)
 }
 
-func (f *Function) HashKey() (HashKey, *Error) {
+func (f *Function) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(f)
 }
 
-func (r *ReturnValue) HashKey() (HashKey, *Error) {
+func (r *ReturnValue) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(r)
 }
 
-func (b *Builtin) HashKey() (HashKey, *Error) {
+func (b *Builtin) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(b)
 }
 
-func (h *Hash) HashKey() (HashKey, *Error) {
+func (h *Hash) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(h)
 }
