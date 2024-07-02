@@ -445,10 +445,10 @@ func TestHashIndexExpression(t *testing.T) {
 		{`let d = {"one": 1}; d["one"]`, NewResultInInt(1)},
 		{`let k = "one"; {"one": 1}[k]`, NewResultInInt(1)},
 		{`{[1, 2, 3]: 1}`, NewResultInError("value of type ARRAY is not hashable")},
-		{`{"one": "one"}[fn(){}]`, NewResultInError("value of type FUNCTION is not hashable")},
+		{`{"one": "one"}[fn(){}]`, NewResultInError("unusable as hash key: FUNCTION")},
 		{`{1: 1}[1]`, NewResultInInt(1)},
-		{`{true: 1}`, NewResultInInt(1)},
-		{`{false: 1}`, NewResultInInt(1)},
+		{`{true: 1}[true]`, NewResultInInt(1)},
+		{`{false: 1}[false]`, NewResultInInt(1)},
 	}
 
 	for _, tt := range tests {
