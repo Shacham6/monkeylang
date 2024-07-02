@@ -50,7 +50,10 @@ func startFile(file string) {
 	}
 
 	env := object.NewEnvironment()
-	evaluator.Eval(program, env)
+	evaluationResult := evaluator.Eval(program, env)
+	if evaluationResult.Type() == object.ERROR_OBJ {
+		io.WriteString(os.Stderr, fmt.Sprintf("Encountered a runtime error: %s\n", evaluationResult.Inspect()))
+	}
 }
 
 func printParserErrors(out io.Writer, errors []string) {
