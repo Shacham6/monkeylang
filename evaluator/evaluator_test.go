@@ -272,6 +272,7 @@ func TestStringConcatenation(t *testing.T) {
 		expected CheckEvaluated
 	}{
 		{`"hello" + " " + "world"`, NewResultInString("hello world")}, // TODO(Jajo): Add str + int
+		{`"number " + 1`, NewResultInString("number 1")},
 	}
 
 	for _, tt := range tests {
