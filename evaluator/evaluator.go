@@ -139,7 +139,7 @@ func evalHashLiteral(h *ast.HashLiteral, env *object.Environment) object.Object 
 
 		hashed, err := key.HashKey()
 		if err != nil {
-			return newError("value of type %s is not hashable", key.Type())
+			return newError("unusable as hash key: %s", key.Type())
 		}
 
 		value := Eval(valueNode, env)
