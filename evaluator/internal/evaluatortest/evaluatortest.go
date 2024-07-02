@@ -46,6 +46,15 @@ func CheckBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	return true
 }
 
+func CheckStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result := testutils.CheckIsA[object.String](t, obj, "obj is not object.String")
+	if result.Value != expected {
+		t.Errorf("result has wrong value. got = %v, expect = %v", result.Value, expected)
+		return false
+	}
+	return true
+}
+
 func CheckArrayValue(t *testing.T, obj object.Object, expected []CheckEvaluated) bool {
 	arr := testutils.CheckIsA[object.Array](t, obj, "obj is not object.Array")
 	hasFailed := false
@@ -120,6 +129,18 @@ func NewResultInArray(elements ...CheckEvaluated) *ResultInArray {
 
 func (r *ResultInArray) CheckEvaluated(t *testing.T, obj object.Object) bool {
 	return CheckArrayValue(t, obj, r.elements)
+}
+
+type ResultInString struct {
+	expected string
+}
+
+func NewResultInString(expected string) *ResultInString {
+	return &ResultInString{expected}
+}
+
+func (r *ResultInString) CheckEvaluated(t *testing.T, obj object.Object) bool {
+	return CheckStringObject(t, obj, r.expected)
 }
 
 type CheckEvaluated interface {

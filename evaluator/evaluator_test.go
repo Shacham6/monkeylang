@@ -267,13 +267,18 @@ func TestStringLiteral(t *testing.T) {
 }
 
 func TestStringConcatenation(t *testing.T) {
-	input := `"hello" + " " + "world"`
+	tests := []struct {
+		input    string
+		expected CheckEvaluated
+	}{
+		{`"hello" + " " + "world"`, NewResultInString("hello world")}, // TODO(Jajo): Add str + int
+	}
 
-	evaluated := DoEval(input)
-	str := testutils.CheckIsA[object.String](t, evaluated, "evaluated is not a object.String")
-
-	if str.Value != "hello world" {
-		t.Errorf("String has wrong value. got = %q", str.Value)
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := DoEval(tt.input)
+			tt.expected.CheckEvaluated(t, evaluated)
+		})
 	}
 }
 
@@ -319,7 +324,7 @@ func TestBuiltinFunction(t *testing.T) {
 		{`let arr = []; push(arr, 1)`, NewResultInArray(NewResultInInt(1))},
 		{`push([])`, NewResultInError("wrong number of arguments. got = 1, want = 2")},
 		{`push([], 12, 12)`, NewResultInError("wrong number of arguments. got = 3, want = 2")},
-		{`push(2, 2)`, NewResultInError("first argument to `push` must be an ARRAY, got INTEGER")},
+		{`push(2, 2)`, NewResultInError("first argument to `push` must be ARRAY, got INTEGER")},
 	}
 
 	for _, tt := range tests {

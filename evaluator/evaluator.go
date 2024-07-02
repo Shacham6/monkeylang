@@ -332,7 +332,8 @@ func evalInfixExpression(op string, left object.Object, right object.Object) obj
 		return nativeBoolToBooleanObject(left == right)
 	case op == "!=":
 		return nativeBoolToBooleanObject(left != right)
-	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+	// case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:  // TODO(Jajo): clean
+	case left.Type() == object.STRING_OBJ:
 		return evalStringInfixExpression(op, left, right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), op, right.Type())
@@ -389,8 +390,16 @@ func evalStringInfixExpression(op string, left object.Object, right object.Objec
 		return newError("unknown operator: %s %s %s", left.Type(), op, right.Type())
 	}
 	leftVal := left.(*object.String).Value
-	rightVal := right.(*object.String).Value
-	return &object.String{Value: leftVal + rightVal}
+	switch right.Type() {
+	case object.STRING_OBJ: // TODO(Jajo): Test this
+		rightVal := right.(*object.String).Value
+		return &object.String{Value: leftVal + rightVal}
+	case object.INTEGER_OBJ:
+		rightVal := right.(*object.Integer).Value
+		return &object.String{Value: fmt.Sprintf("%s%d", leftVal, rightVal)}
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), op, right.Type())
+	}
 }
 
 func evalMinusOperatorExpression(right object.Object) object.Object {
