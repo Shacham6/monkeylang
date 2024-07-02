@@ -1,6 +1,9 @@
 package evaluator
 
-import "monkey/object"
+import (
+	"fmt"
+	"monkey/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": {
@@ -89,11 +92,26 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			if args[0].Type() != object.ARRAY_OBJ {
-				return newError("first argument to `push` must be an %s, got %s", object.ARRAY_OBJ, args[0].Type())
+				return newError("first argument to `push` must be %s, got %s", object.ARRAY_OBJ, args[0].Type())
 			}
 
 			arr := args[0].(*object.Array)
 			return &object.Array{Elements: append(arr.Elements, args[1])}
+		},
+	},
+
+	"puts": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newWrongNumOfArgsError(len(args), 1)
+			}
+
+			if args[0].Type() != object.STRING_OBJ {
+				return newError("first argument to `puts` must be %s, got %s", object.STRING_OBJ, args[0].Type())
+			}
+
+			fmt.Print(args[0])
+			return &NULL
 		},
 	},
 }
