@@ -110,7 +110,7 @@ var builtins = map[string]*object.Builtin{
 				return newError("first argument to `puts` must be %s, got %s", object.STRING_OBJ, args[0].Type())
 			}
 
-			fmt.Print(args[0])
+			fmt.Println(args[0].Inspect())
 			return &NULL
 		},
 	},
