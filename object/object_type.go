@@ -13,4 +13,5 @@ const (
 	ERROR_OBJ        ObjectType = "ERROR"
 	ARRAY_OBJ        ObjectType = "ARRAY"
 	HASH_OBJ         ObjectType = "HASH"
+	QUOTE_OBJ        ObjectType = "QUOTE"
 )

@@ -79,6 +79,13 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Function{Parameters: params, Env: env, Body: body}
 
 	case *ast.CallExpression:
+		// Handle the "quote" magic case
+		if v.Function().TokenLiteral() == "quote" {
+			// TODO(Jajo): Pay attention that this section will simply silently ignore
+			// all arguments after the 1st whatever they may be, without even an argument.
+			return quote(v.Arguments()[0])
+		}
+
 		function := Eval(v.Function(), env)
 		if isError(function) {
 			return function
