@@ -93,3 +93,7 @@ func (b *Builtin) HashKey() (HashKey, error) {
 func (h *Hash) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(h)
 }
+
+func (q *Quote) HashKey() (HashKey, error) {
+	return ZeroHashKey(), newTypeNotHashableError(q)
+}
