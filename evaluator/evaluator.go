@@ -391,7 +391,7 @@ func evalStringInfixExpression(op string, left object.Object, right object.Objec
 	}
 	leftVal := left.(*object.String).Value
 	switch right.Type() {
-	case object.STRING_OBJ: // TODO(Jajo): Test this
+	case object.STRING_OBJ:
 		rightVal := right.(*object.String).Value
 		return &object.String{Value: leftVal + rightVal}
 	case object.INTEGER_OBJ:
