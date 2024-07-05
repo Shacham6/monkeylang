@@ -28,9 +28,47 @@ func TestQuote(t *testing.T) {
 				t.Fatalf("quote.Node is nil")
 			}
 
-			asString := quote.Inspect()
-			if asString != tt.expected {
-				t.Errorf("quote.Inspect() is not as expected. got = %s, want = %s", asString, tt.expected)
+			if quote.Inspect() != tt.expected {
+				t.Errorf("quote.Inspect() is not as expected. got = %s, want = %s", quote.Inspect(), tt.expected)
+			}
+		})
+	}
+}
+
+func TestQuoteUnquote(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			`quote(unquote(4))`,
+			`QUOTE(4)`,
+		},
+		{
+			`quote(unquote(1 + 2))`,
+			`QUOTE(3)`,
+		},
+		{
+			`quote(1 + unquote(2 + 3))`,
+			`QUOTE((infix 1 + 5))`,
+		},
+		{
+			`quote(unquote(1 + 2) + 3)`,
+			`QUOTE((infix 3 + 3))`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			evaluated := DoEval(tt.input)
+			quote := testutils.CheckIsA[object.Quote](t, evaluated, "evaluated is not object.Quote")
+
+			if quote.Node == nil {
+				t.Fatalf("quote.Node is nil")
+			}
+
+			if quote.Inspect() != tt.expected {
+				t.Errorf("quote.Inspect() not equal to expected. got = %s, want = %s", quote.Inspect(), tt.expected)
 			}
 		})
 	}
