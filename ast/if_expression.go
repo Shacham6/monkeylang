@@ -31,7 +31,6 @@ func (i *IfExpression) Consequence() *BlockStatement {
 func (i *IfExpression) Alternative() *IfExpressionAlternative {
 	return i.alternative
 }
-
 func (i *IfExpression) expressionNode() {}
 
 func (i *IfExpression) TokenLiteral() string {
@@ -41,13 +40,14 @@ func (i *IfExpression) TokenLiteral() string {
 func (i *IfExpression) String() string {
 	var out bytes.Buffer
 
-	out.WriteString("(if")
+	out.WriteString("(if ")
 	out.WriteString(i.condition.String())
 	out.WriteString(" ")
 	out.WriteString(i.consequence.String())
 
 	if i.alternative.Ok() {
-		out.WriteString("else ")
+		// out.WriteString(" else ")
+		out.WriteString(" ")
 		out.WriteString(i.alternative.String())
 	}
 	out.WriteString(")")

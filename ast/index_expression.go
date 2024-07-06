@@ -19,8 +19,16 @@ func (i *IndexExpression) Left() Expression {
 	return i.left
 }
 
+func (i *IndexExpression) SetLeft(value Expression) {
+	i.left = value
+}
+
 func (i *IndexExpression) Index() Expression {
 	return i.index
+}
+
+func (i *IndexExpression) SetIndex(value Expression) {
+	i.index = value
 }
 
 func (i *IndexExpression) TokenLiteral() string {
