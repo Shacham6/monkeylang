@@ -2,15 +2,13 @@ package ast_test
 
 import (
 	"monkey/ast"
+	"monkey/lexer"
+	"monkey/parser"
 	"monkey/token"
-	"reflect"
 	"testing"
 )
 
-func TestModify(t *testing.T) {
-	one := func() ast.Expression { return ast.NewIntegerLiteral(token.New(token.INT, "1"), 1) }
-	two := func() ast.Expression { return ast.NewIntegerLiteral(token.New(token.INT, "2"), 2) }
-
+func TestModWithParseForEase(t *testing.T) {
 	turnOneIntoTwo := func(node ast.Node) ast.Node {
 		integer, ok := node.(*ast.IntegerLiteral)
 		if !ok {
@@ -25,37 +23,79 @@ func TestModify(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		input    ast.Node
-		expected ast.Node
+		input   string
+		preMod  string
+		postMod string
 	}{
 		{
-			"flat",
-			one(),
-			two(),
+			"1",
+			"(program (expr 1))",
+			"(program (expr 2))",
 		},
 		{
-			"nested",
-			&ast.Program{
-				Statements: []ast.Statement{
-					&ast.ExpressionStatement{Expression: one()},
-				},
-			},
-			&ast.Program{
-				Statements: []ast.Statement{
-					&ast.ExpressionStatement{Expression: two()},
-				},
-			},
+			"1 + 2",
+			"(program (expr (infix 1 + 2)))",
+			"(program (expr (infix 2 + 2)))",
+		},
+		{
+			"2[1]",
+			"(program (expr (index 2 1)))",
+			"(program (expr (index 2 2)))",
+		},
+		{
+			"1[2]",
+			"(program (expr (index 1 2)))",
+			"(program (expr (index 2 2)))",
+		},
+		{
+			"[1, 2, 3]",
+			"(program (expr [1 2 3]))",
+			"(program (expr [2 2 3]))",
+		},
+		{
+			"[1, 2][2]",
+			"(program (expr (index [1 2] 2)))",
+			"(program (expr (index [2 2] 2)))",
+		},
+		{
+			"if (1 == 2) {}",
+			"(program (expr (if (infix 1 == 2) (block ))))",
+			"(program (expr (if (infix 2 == 2) (block ))))",
+		},
+		{
+			"if (true) { 1 }",
+			"(program (expr (if true (block (expr 1)))))",
+			"(program (expr (if true (block (expr 2)))))",
+		},
+		{
+			"if (true) {} else { 1 }",
+			"(program (expr (if true (block ) (block (expr 1)))))",
+			"(program (expr (if true (block ) (block (expr 2)))))",
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			modified := ast.Modify(tt.input, turnOneIntoTwo)
-			equal := reflect.DeepEqual(modified, tt.expected)
-			if !equal {
-				t.Errorf("not equal. got = %#v, want = %#v", modified, tt.expected)
+		t.Run(tt.input, func(t *testing.T) {
+			p := parser.New(lexer.New(tt.input))
+			program := p.ParseProgram()
+
+			checkParserErrors(t, p)
+
+			if tt.preMod != program.String() {
+				t.Errorf("parsing result unexpected. got = %s, want = %s", program.String(), tt.preMod)
+			}
+
+			modified := ast.Modify(program, turnOneIntoTwo)
+
+			if tt.postMod != modified.String() {
+				t.Errorf("modification result unexpected. got = %s, want = %s", modified.String(), tt.postMod)
 			}
 		})
+	}
+}
+
+func checkParserErrors(t *testing.T, p *parser.Parser) {
+	if len(p.Errors()) > 0 {
+		t.Fatalf("parsing resulted in unexpected errors: %#v", p.Errors())
 	}
 }
