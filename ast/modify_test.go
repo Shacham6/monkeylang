@@ -72,6 +72,26 @@ func TestModWithParseForEase(t *testing.T) {
 			"(program (expr (if true (block ) (block (expr 1)))))",
 			"(program (expr (if true (block ) (block (expr 2)))))",
 		},
+		{
+			"return 1",
+			"(program (return 1))",
+			"(program (return 2))",
+		},
+		{
+			"let a = 1",
+			"(program (let a 1))",
+			"(program (let a 2))",
+		},
+		{
+			"fn(){ 1 }",
+			"(program (expr (func [] (block (expr 1)))))",
+			"(program (expr (func [] (block (expr 2)))))",
+		},
+		{
+			"fn() {2 + 1}",
+			"(program (expr (func [] (block (expr (infix 2 + 1))))))",
+			"(program (expr (func [] (block (expr (infix 2 + 2))))))",
+		},
 	}
 
 	for _, tt := range tests {
