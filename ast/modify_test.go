@@ -85,7 +85,7 @@ func TestModify(t *testing.T) {
 		{
 			"let a = 1 + 2",
 			"(program (let a (infix 1 + 2)))",
-			"(program (let a (infix 1 + 2)))",
+			"(program (let a (infix 2 + 2)))",
 		},
 		{
 			"fn(){ 1 }",
@@ -111,6 +111,16 @@ func TestModify(t *testing.T) {
 			"return 1 + 2",
 			"(program (return (infix 1 + 2)))",
 			"(program (return (infix 2 + 2)))",
+		},
+		{
+			"func(1)",
+			"(program (expr (call func 1)))",
+			"(program (expr (call func 2)))",
+		},
+		{
+			"func(1 + 2)",
+			"(program (expr (call func (infix 1 + 2))))",
+			"(program (expr (call func (infix 2 + 2))))",
 		},
 	}
 

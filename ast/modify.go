@@ -86,5 +86,9 @@ func (s *StringLiteral) modify(modify ModifierFunc) {}
 func (h *HashLiteral) modify(modify ModifierFunc) {}
 
 func (c *CallExpression) modify(modify ModifierFunc) {
-	// TODO(Jajo): Implement
+	c.function, _ = Modify(c.function, modify).(Expression)
+
+	for i, arg := range c.arguments {
+		c.arguments[i], _ = Modify(arg, modify).(Expression)
+	}
 }
