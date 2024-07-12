@@ -83,6 +83,11 @@ func TestModify(t *testing.T) {
 			"(program (let a 2))",
 		},
 		{
+			"let a = 1 + 2",
+			"(program (let a (infix 1 + 2)))",
+			"(program (let a (infix 1 + 2)))",
+		},
+		{
 			"fn(){ 1 }",
 			"(program (expr (func [] (block (expr 1)))))",
 			"(program (expr (func [] (block (expr 2)))))",
