@@ -83,7 +83,16 @@ func (b *Boolean) modify(modify ModifierFunc) {}
 
 func (s *StringLiteral) modify(modify ModifierFunc) {}
 
-func (h *HashLiteral) modify(modify ModifierFunc) {}
+func (h *HashLiteral) modify(modify ModifierFunc) {
+	modifiedPairs := map[Expression]Expression{}
+	for key, val := range h.pairs {
+		modKey, _ := Modify(key, modify).(Expression)
+		modVal, _ := Modify(val, modify).(Expression)
+		modifiedPairs[modKey] = modVal
+	}
+
+	h.pairs = modifiedPairs
+}
 
 func (c *CallExpression) modify(modify ModifierFunc) {
 	c.function, _ = Modify(c.function, modify).(Expression)
