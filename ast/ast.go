@@ -7,6 +7,8 @@ import (
 )
 
 type Node interface {
+	modifiable
+
 	String() string
 	TokenLiteral() string
 }

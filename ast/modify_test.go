@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestModWithParseForEase(t *testing.T) {
+func TestModify(t *testing.T) {
 	turnOneIntoTwo := func(node ast.Node) ast.Node {
 		integer, ok := node.(*ast.IntegerLiteral)
 		if !ok {

@@ -2,60 +2,89 @@ package ast
 
 type ModifierFunc func(Node) Node
 
+type modifiable interface {
+	modify(ModifierFunc)
+}
+
 func Modify(node Node, modifier ModifierFunc) Node {
-	switch node := node.(type) {
-	case *Program:
-		for i, statement := range node.Statements {
-			node.Statements[i], _ = Modify(statement, modifier).(Statement)
-		}
-
-	case *ExpressionStatement:
-		node.Expression, _ = Modify(node.Expression, modifier).(Expression)
-
-	case *InfixExpression:
-		node.Left, _ = Modify(node.Left, modifier).(Expression)
-		node.Right, _ = Modify(node.Right, modifier).(Expression)
-
-	case *PrefixExpression:
-		node.Right, _ = Modify(node.Right, modifier).(Expression)
-
-	case *ArrayLiteral:
-		for i, el := range node.Elements {
-			node.Elements[i], _ = Modify(el, modifier).(Expression)
-		}
-
-	case *IndexExpression:
-		node.left, _ = Modify(node.Left(), modifier).(Expression)
-		node.index, _ = Modify(node.Index(), modifier).(Expression)
-
-	case *IfExpression:
-		node.condition, _ = Modify(node.condition, modifier).(Expression)
-		node.consequence, _ = Modify(node.consequence, modifier).(*BlockStatement)
-		node.alternative, _ = Modify(node.alternative, modifier).(*IfExpressionAlternative)
-
-	case *IfExpressionAlternative:
-		if !node.ok {
-			return modifier(node)
-		}
-		node.content, _ = Modify(node.content, modifier).(*BlockStatement)
-
-	case *BlockStatement:
-		for i, el := range node.statements {
-			node.statements[i], _ = Modify(el, modifier).(Statement)
-		}
-
-	case *ReturnStatement:
-		node.ReturnValue, _ = Modify(node.ReturnValue, modifier).(Expression)
-
-	case *LetStatement:
-		node.Value, _ = Modify(node.Value, modifier).(Expression)
-
-	case *FunctionLiteral:
-		node.body, _ = Modify(node.body, modifier).(*BlockStatement)
-		for i, p := range node.parameters {
-			node.parameters[i], _ = Modify(p, modifier).(*Identifier)
-		}
-	}
-
+	node.modify(modifier)
 	return modifier(node)
+}
+
+func (p *Program) modify(modify ModifierFunc) {
+	for i, statement := range p.Statements {
+		p.Statements[i], _ = Modify(statement, modify).(Statement)
+	}
+}
+
+func (e *ExpressionStatement) modify(modify ModifierFunc) {
+	e.Expression, _ = Modify(e.Expression, modify).(Expression)
+}
+
+func (e *InfixExpression) modify(modify ModifierFunc) {
+	e.Left, _ = Modify(e.Left, modify).(Expression)
+	e.Right, _ = Modify(e.Right, modify).(Expression)
+}
+
+func (p *PrefixExpression) modify(modify ModifierFunc) {
+	p.Right, _ = Modify(p.Right, modify).(Expression)
+}
+
+func (a *ArrayLiteral) modify(modify ModifierFunc) {
+	for i, el := range a.Elements {
+		a.Elements[i], _ = Modify(el, modify).(Expression)
+	}
+}
+
+func (i *IndexExpression) modify(modify ModifierFunc) {
+	i.left, _ = Modify(i.Left(), modify).(Expression)
+	i.index, _ = Modify(i.Index(), modify).(Expression)
+}
+
+func (i *IfExpression) modify(modify ModifierFunc) {
+	i.condition, _ = Modify(i.condition, modify).(Expression)
+	i.consequence, _ = Modify(i.consequence, modify).(*BlockStatement)
+	i.alternative, _ = Modify(i.alternative, modify).(*IfExpressionAlternative)
+}
+
+func (i *IfExpressionAlternative) modify(modify ModifierFunc) {
+	if !i.ok {
+		return
+	}
+	i.content, _ = Modify(i.content, modify).(*BlockStatement)
+}
+
+func (b *BlockStatement) modify(modify ModifierFunc) {
+	for i, el := range b.statements {
+		b.statements[i], _ = Modify(el, modify).(Statement)
+	}
+}
+
+func (r *ReturnStatement) modify(modify ModifierFunc) {
+	r.ReturnValue, _ = Modify(r.ReturnValue, modify).(Expression)
+}
+
+func (l *LetStatement) modify(modify ModifierFunc) {
+	l.Value, _ = Modify(l.Value, modify).(Expression)
+}
+
+func (f *FunctionLiteral) modify(modify ModifierFunc) {
+	f.body, _ = Modify(f.body, modify).(*BlockStatement)
+	for i, p := range f.parameters {
+		f.parameters[i], _ = Modify(p, modify).(*Identifier)
+	}
+}
+
+func (i *Identifier) modify(modify ModifierFunc) {}
+
+func (i *IntegerLiteral) modify(modify ModifierFunc) {}
+
+func (b *Boolean) modify(modify ModifierFunc) {}
+
+func (s *StringLiteral) modify(modify ModifierFunc) {}
+
+func (h *HashLiteral) modify(modify ModifierFunc) {}
+
+func (c *CallExpression) modify(modify ModifierFunc) {
+	// TODO(Jajo): Implement
 }
