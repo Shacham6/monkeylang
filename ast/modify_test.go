@@ -92,6 +92,21 @@ func TestModify(t *testing.T) {
 			"(program (expr (func [] (block (expr (infix 2 + 1))))))",
 			"(program (expr (func [] (block (expr (infix 2 + 2))))))",
 		},
+		{
+			"return 1",
+			"(program (return 1))",
+			"(program (return 2))",
+		},
+		{
+			"fn() { return 1 }",
+			"(program (expr (func [] (block (return 1)))))",
+			"(program (expr (func [] (block (return 2)))))",
+		},
+		{
+			"return 1 + 2",
+			"(program (return (infix 1 + 2)))",
+			"(program (return (infix 2 + 2)))",
+		},
 	}
 
 	for _, tt := range tests {
