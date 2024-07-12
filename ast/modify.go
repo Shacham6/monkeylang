@@ -29,44 +29,93 @@ func modifyIntoType[T Node](node Node, modifier ModifierFunc) (T, error) {
 
 func (p *Program) modify(modify ModifierFunc) error {
 	for i, statement := range p.Statements {
-		p.Statements[i], _ = modifyIntoType[Statement](statement, modify)
+		res, err := modifyIntoType[Statement](statement, modify)
+		if err != nil {
+			return err
+		}
+		p.Statements[i] = res
 	}
 	return nil
 }
 
 func (e *ExpressionStatement) modify(modify ModifierFunc) error {
-	e.Expression, _ = modifyIntoType[Expression](e.Expression, modify)
+	res, err := modifyIntoType[Expression](e.Expression, modify)
+	if err != nil {
+		return err
+	}
+
+	e.Expression = res
 	return nil
 }
 
 func (e *InfixExpression) modify(modify ModifierFunc) error {
-	e.Left, _ = modifyIntoType[Expression](e.Left, modify)
-	e.Right, _ = modifyIntoType[Expression](e.Right, modify)
+	leftRes, err := modifyIntoType[Expression](e.Left, modify)
+	if err != nil {
+		return err
+	}
+
+	rightRes, err := modifyIntoType[Expression](e.Right, modify)
+	if err != nil {
+		return err
+	}
+
+	e.Left = leftRes
+	e.Right = rightRes
+
 	return nil
 }
 
 func (p *PrefixExpression) modify(modify ModifierFunc) error {
-	p.Right, _ = modifyIntoType[Expression](p.Right, modify)
+	rightRes, err := modifyIntoType[Expression](p.Right, modify)
+	if err != nil {
+		return err
+	}
+
+	p.Right = rightRes
 	return nil
 }
 
 func (a *ArrayLiteral) modify(modify ModifierFunc) error {
 	for i, el := range a.Elements {
-		a.Elements[i], _ = modifyIntoType[Expression](el, modify)
+		elRes, err := modifyIntoType[Expression](el, modify)
+		if err != nil {
+			return err
+		}
+		a.Elements[i] = elRes
 	}
 	return nil
 }
 
 func (i *IndexExpression) modify(modify ModifierFunc) error {
-	i.left, _ = modifyIntoType[Expression](i.Left(), modify)
-	i.index, _ = modifyIntoType[Expression](i.Index(), modify)
+	leftRes, err := modifyIntoType[Expression](i.Left(), modify)
+	if err != nil {
+		return err
+	}
+	i.left = leftRes
+
+	indexRes, err := modifyIntoType[Expression](i.Index(), modify)
+	if err != nil {
+		return err
+	}
+	i.index = indexRes
+
 	return nil
 }
 
 func (i *IfExpression) modify(modify ModifierFunc) error {
-	i.condition, _ = modifyIntoType[Expression](i.condition, modify)
-	i.consequence, _ = modifyIntoType[*BlockStatement](i.consequence, modify)
-	i.alternative, _ = modifyIntoType[*IfExpressionAlternative](i.alternative, modify)
+	var err error
+	i.condition, err = modifyIntoType[Expression](i.condition, modify)
+	if err != nil {
+		return err
+	}
+	i.consequence, err = modifyIntoType[*BlockStatement](i.consequence, modify)
+	if err != nil {
+		return err
+	}
+	i.alternative, err = modifyIntoType[*IfExpressionAlternative](i.alternative, modify)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -74,31 +123,58 @@ func (i *IfExpressionAlternative) modify(modify ModifierFunc) error {
 	if !i.ok {
 		return nil
 	}
-	i.content, _ = modifyIntoType[*BlockStatement](i.content, modify)
+
+	res, err := modifyIntoType[*BlockStatement](i.content, modify)
+	if err != nil {
+		return err
+	}
+
+	i.content = res
 	return nil
 }
 
 func (b *BlockStatement) modify(modify ModifierFunc) error {
 	for i, el := range b.statements {
-		b.statements[i], _ = modifyIntoType[Statement](el, modify)
+		statementRes, err := modifyIntoType[Statement](el, modify)
+		if err != nil {
+			return err
+		}
+		b.statements[i] = statementRes
 	}
 	return nil
 }
 
 func (r *ReturnStatement) modify(modify ModifierFunc) error {
-	r.ReturnValue, _ = modifyIntoType[Expression](r.ReturnValue, modify)
+	returnRes, err := modifyIntoType[Expression](r.ReturnValue, modify)
+	if err != nil {
+		return err
+	}
+	r.ReturnValue = returnRes
 	return nil
 }
 
 func (l *LetStatement) modify(modify ModifierFunc) error {
-	l.Value, _ = modifyIntoType[Expression](l.Value, modify)
+	letRes, err := modifyIntoType[Expression](l.Value, modify)
+	if err != nil {
+		return err
+	}
+	l.Value = letRes
 	return nil
 }
 
 func (f *FunctionLiteral) modify(modify ModifierFunc) error {
-	f.body, _ = modifyIntoType[*BlockStatement](f.body, modify)
+	bodyRes, err := modifyIntoType[*BlockStatement](f.body, modify)
+	if err != nil {
+		return err
+	}
+	f.body = bodyRes
+
 	for i, p := range f.parameters {
-		f.parameters[i], _ = modifyIntoType[*Identifier](p, modify)
+		paramRes, err := modifyIntoType[*Identifier](p, modify)
+		if err != nil {
+			return err
+		}
+		f.parameters[i] = paramRes
 	}
 	return nil
 }
@@ -114,8 +190,15 @@ func (s *StringLiteral) modify(modify ModifierFunc) error { return nil }
 func (h *HashLiteral) modify(modify ModifierFunc) error {
 	modifiedPairs := map[Expression]Expression{}
 	for key, val := range h.pairs {
-		modKey, _ := modifyIntoType[Expression](key, modify)
-		modVal, _ := modifyIntoType[Expression](val, modify)
+		modKey, err := modifyIntoType[Expression](key, modify)
+		if err != nil {
+			return err
+		}
+
+		modVal, err := modifyIntoType[Expression](val, modify)
+		if err != nil {
+			return err
+		}
 		modifiedPairs[modKey] = modVal
 	}
 
@@ -128,7 +211,11 @@ func (c *CallExpression) modify(modify ModifierFunc) error {
 	c.function, _ = modifyIntoType[Expression](c.function, modify)
 
 	for i, arg := range c.arguments {
-		c.arguments[i], _ = modifyIntoType[Expression](arg, modify)
+		argRes, err := modifyIntoType[Expression](arg, modify)
+		if err != nil {
+			return err
+		}
+		c.arguments[i] = argRes
 	}
 
 	return nil
