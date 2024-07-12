@@ -397,6 +397,8 @@ func evalStringInfixExpression(op string, left object.Object, right object.Objec
 		return newError("unknown operator: %s %s %s", left.Type(), op, right.Type())
 	}
 	leftVal := left.(*object.String).Value
+
+	//exhaustive:ignore
 	switch right.Type() {
 	case object.STRING_OBJ:
 		rightVal := right.(*object.String).Value
