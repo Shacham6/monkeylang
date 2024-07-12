@@ -46,7 +46,6 @@ func (i *IfExpression) String() string {
 	out.WriteString(i.consequence.String())
 
 	if i.alternative.Ok() {
-		// out.WriteString(" else ")
 		out.WriteString(" ")
 		out.WriteString(i.alternative.String())
 	}
