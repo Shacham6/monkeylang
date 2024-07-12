@@ -122,6 +122,16 @@ func TestModify(t *testing.T) {
 			"(program (expr (call func (infix 1 + 2))))",
 			"(program (expr (call func (infix 2 + 2))))",
 		},
+		{
+			`{"a": 1}`,
+			`(program (expr (hash (pair a 1))))`,
+			`(program (expr (hash (pair a 2))))`,
+		},
+		{
+			`{1: "a"}`,
+			`(program (expr (hash (pair 1 a))))`,
+			`(program (expr (hash (pair 2 a))))`,
+		},
 	}
 
 	for _, tt := range tests {
