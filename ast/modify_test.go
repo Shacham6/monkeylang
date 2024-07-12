@@ -9,17 +9,17 @@ import (
 )
 
 func TestModify(t *testing.T) {
-	turnOneIntoTwo := func(node ast.Node) ast.Node {
+	turnOneIntoTwo := func(node ast.Node) (ast.Node, error) {
 		integer, ok := node.(*ast.IntegerLiteral)
 		if !ok {
-			return node
+			return node, nil
 		}
 
 		if integer.Value != 1 {
-			return integer
+			return integer, nil
 		}
 
-		return ast.NewIntegerLiteral(token.New(token.INT, "2"), 2)
+		return ast.NewIntegerLiteral(token.New(token.INT, "2"), 2), nil
 	}
 
 	tests := []struct {
@@ -145,7 +145,10 @@ func TestModify(t *testing.T) {
 				t.Errorf("parsing result unexpected. got = %s, want = %s", program.String(), tt.preMod)
 			}
 
-			modified := ast.Modify(program, turnOneIntoTwo)
+			modified, err := ast.Modify(program, turnOneIntoTwo)
+			if err != nil {
+				t.Fatalf("err is not nil, got = %s", err)
+			}
 
 			if tt.postMod != modified.String() {
 				t.Errorf("modification result unexpected. got = %s, want = %s", modified.String(), tt.postMod)
