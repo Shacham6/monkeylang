@@ -76,6 +76,17 @@ func TestQuoteUnquote(t *testing.T) {
 			`quote(unquote(null))`,
 			`QUOTE(null)`,
 		},
+		{
+			`quote(unquote(quote(4 + 4)))`,
+			`QUOTE((infix 4 + 4))`,
+		},
+		{
+			`
+			let quotedInfixExpression = quote(4 + 4);
+			quote(unquote(4 + 4) + unquote(quotedInfixExpression))
+			`,
+			`QUOTE((infix 8 + (infix 4 + 4)))`,
+		},
 	}
 
 	for _, tt := range tests {

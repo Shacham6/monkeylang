@@ -28,7 +28,6 @@ func evalUnquoteCalls(quoted ast.Node, env *object.Environment) ast.Node {
 		evalRes := Eval(call.Arguments()[0], env)
 		astNode, err := evalRes.Deval()
 		return astNode, err
-		// return convertObjectToASTNode(evalRes), nil
 	})
 	if err != nil {
 		panic(err) // Don't know how to match this currently
@@ -44,41 +43,3 @@ func isUnquotedCall(node ast.Node) bool {
 	}
 	return callExpression.Function().TokenLiteral() == "unquote"
 }
-
-// convertObjectToASTNode performs, for all intents and purposes, the opposite of `Eval`.
-// func convertObjectToASTNode(obj object.Object) ast.Node {
-// switch obj := obj.(type) {
-// case *object.Integer:
-// 	t := token.Token{
-// 		Type:    token.INT,
-// 		Literal: fmt.Sprintf("%d", obj.Value),
-// 	}
-// 	return ast.NewIntegerLiteral(t, obj.Value)
-//
-// case *object.Boolean:
-// 	var tokenType token.TokenType
-// 	if obj.Value {
-// 		tokenType = token.TRUE
-// 	} else {
-// 		tokenType = token.FALSE
-// 	}
-//
-// 	return ast.NewBoolean(
-// 		token.Token{
-// 			Type:    tokenType,
-// 			Literal: fmt.Sprintf("%v", obj.Value),
-// 		},
-// 		obj.Value,
-// 	)
-//
-// case *object.String:
-// 	return ast.NewStringLiteral(
-// 		token.Token{
-// 			Type:    token.STRING,
-// 			Literal: obj.Value,
-// 		},
-// 		obj.Value,
-// 	)
-// }
-// panic(fmt.Sprintf("object of type %T not supported yet", obj))
-// }
