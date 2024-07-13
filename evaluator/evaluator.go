@@ -83,7 +83,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if v.Function().TokenLiteral() == "quote" {
 			// TODO(Jajo): Pay attention that this section will simply silently ignore
 			// all arguments after the 1st whatever they may be, without even an argument.
-			return quote(v.Arguments()[0])
+			return quote(v.Arguments()[0], env)
 		}
 
 		function := Eval(v.Function(), env)

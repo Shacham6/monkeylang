@@ -5,6 +5,12 @@ import (
 	"hash/fnv"
 )
 
+type hashKey interface {
+	// Does not explicitly return the Hash object because some objects are not hashable,
+	// and so we want to maintain the ability to return an error instead.
+	HashKey() (HashKey, error)
+}
+
 type HashKey struct {
 	objectType ObjectType
 	value      uint64
