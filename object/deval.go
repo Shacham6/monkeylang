@@ -57,12 +57,12 @@ func (a *Array) Deval() (ast.Node, error) {
 	return ast.NewArrayLiteral(token.New(token.LBRACKET, "["), elements), nil
 }
 
-func (e *Error) Deval() (ast.Node, error) {
-	return nil, newDevalForTypeNotSupportedError(e)
-}
-
 func (n *Null) Deval() (ast.Node, error) {
 	return ast.NewIdentifier(token.New(token.IDENT, "null"), "null"), nil
+}
+
+func (e *Error) Deval() (ast.Node, error) {
+	return nil, newDevalForTypeNotSupportedError(e)
 }
 
 func (f *Function) Deval() (ast.Node, error) {
@@ -82,7 +82,7 @@ func (h *Hash) Deval() (ast.Node, error) {
 }
 
 func (q *Quote) Deval() (ast.Node, error) {
-	return nil, newDevalForTypeNotSupportedError(q)
+	return q.Node, nil
 }
 
 func (i *Integer) Deval() (ast.Node, error) {
