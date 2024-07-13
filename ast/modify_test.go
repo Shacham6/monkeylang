@@ -124,13 +124,13 @@ func TestModify(t *testing.T) {
 		},
 		{
 			`{"a": 1}`,
-			`(program (expr (hash (pair a 1))))`,
-			`(program (expr (hash (pair a 2))))`,
+			`(program (expr (hash (pair "a" 1))))`,
+			`(program (expr (hash (pair "a" 2))))`,
 		},
 		{
 			`{1: "a"}`,
-			`(program (expr (hash (pair 1 a))))`,
-			`(program (expr (hash (pair 2 a))))`,
+			`(program (expr (hash (pair 1 "a"))))`,
+			`(program (expr (hash (pair 2 "a"))))`,
 		},
 	}
 

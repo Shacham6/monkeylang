@@ -11,6 +11,10 @@ type ArrayLiteral struct {
 	Elements []Expression
 }
 
+func NewArrayLiteral(token token.Token, elements []Expression) *ArrayLiteral {
+	return &ArrayLiteral{token, elements}
+}
+
 func (*ArrayLiteral) expressionNode() {}
 
 func (a *ArrayLiteral) TokenLiteral() string {

@@ -36,7 +36,6 @@ func TestQuote(t *testing.T) {
 }
 
 func TestQuoteUnquote(t *testing.T) {
-	t.Skip("Implement ast.Modify w/ tests before this")
 	tests := []struct {
 		input    string
 		expected string
@@ -56,6 +55,26 @@ func TestQuoteUnquote(t *testing.T) {
 		{
 			`quote(unquote(1 + 2) + 3)`,
 			`QUOTE((infix 3 + 3))`,
+		},
+		{
+			`quote(unquote(true))`,
+			`QUOTE(true)`,
+		},
+		{
+			`quote(unquote(false))`,
+			`QUOTE(false)`,
+		},
+		{
+			`quote(unquote(!true))`,
+			`QUOTE(false)`,
+		},
+		{
+			`quote(unquote("hello " + "world"))`,
+			`QUOTE("hello world")`,
+		},
+		{
+			`quote(unquote(null))`,
+			`QUOTE(null)`,
 		},
 	}
 
