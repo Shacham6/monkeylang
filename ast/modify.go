@@ -220,3 +220,10 @@ func (c *CallExpression) modify(modify ModifierFunc) error {
 
 	return nil
 }
+
+func (m *MacroLiteral) modify(modify ModifierFunc) error {
+	// Logically I don't think that we dig into "macro" literals specifically because modify is a macro
+	// concept to begin with. But on the other hand no reason these should be mutually exclusive...
+	// I don't know.
+	return nil
+}

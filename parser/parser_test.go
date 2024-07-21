@@ -855,3 +855,39 @@ func TestParsingHashLiteralWithExpressions(t *testing.T) {
 		expectedFunc(value)
 	}
 }
+
+func TestMacroLiteralParsing(t *testing.T) {
+	input := `macro(x, y) { x + y; };`
+
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d elements. got = %d", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got = %T", program.Statements[0])
+	}
+
+	macro, ok := stmt.Expression.(*ast.MacroLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not *ast.MacroLiteral, got = %T", stmt.Expression)
+	}
+
+	testLiteralExpression(t, macro.Parameters()[0], "x")
+	testLiteralExpression(t, macro.Parameters()[1], "y")
+
+	if amountOfStatements := len(macro.Body().Statements()); amountOfStatements != 1 {
+		t.Fatalf("len(macro.Body().Statements()) is not %d, got = %d", 1, amountOfStatements)
+	}
+
+	expr, ok := macro.Body().Statements()[0].(ast.Expression)
+	if !ok {
+		t.Fatalf("macro.Body.Statements[0] is not Expression")
+	}
+
+	testInfixExpression(t, expr, "x", "+", "y")
+}
