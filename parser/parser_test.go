@@ -884,10 +884,10 @@ func TestMacroLiteralParsing(t *testing.T) {
 		t.Fatalf("len(macro.Body().Statements()) is not %d, got = %d", 1, amountOfStatements)
 	}
 
-	expr, ok := macro.Body().Statements()[0].(ast.Expression)
+	exprStatement, ok := macro.Body().Statements()[0].(*ast.ExpressionStatement)
 	if !ok {
-		t.Fatalf("macro.Body.Statements[0] is not Expression")
+		t.Fatalf("macro.Body.Statements[0] is not *ast.ExpressionStatement, got = %T", macro.Body().Statements()[0])
 	}
 
-	testInfixExpression(t, expr, "x", "+", "y")
+	testInfixExpression(t, exprStatement.Expression, "x", "+", "y")
 }

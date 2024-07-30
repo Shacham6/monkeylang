@@ -46,6 +46,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.LPAREN:   p.parseGroupedExpression,
 		token.IF:       p.parseIfExpression,
 		token.FUNCTION: p.parseFunctionLiteral,
+		token.MACRO:    p.parseMacroLiteral,
 		token.STRING:   p.parseStringLiteral,
 		token.LBRACKET: p.parseArrayLiteral,
 		token.LBRACE:   p.parseHashLiteral,
@@ -379,6 +380,23 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	body := p.parseBlockStatement()
 
 	return ast.NewFunctionLiteral(curToken, params, body)
+}
+
+func (p *Parser) parseMacroLiteral() ast.Expression {
+	curToken := p.curToken
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	params := p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	body := p.parseBlockStatement()
+
+	return ast.NewMacroLiteral(curToken, params, body)
 }
 
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {
