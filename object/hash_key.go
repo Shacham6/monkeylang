@@ -103,3 +103,7 @@ func (h *Hash) HashKey() (HashKey, error) {
 func (q *Quote) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(q)
 }
+
+func (m *Macro) HashKey() (HashKey, error) {
+	return ZeroHashKey(), newTypeNotHashableError(m)
+}

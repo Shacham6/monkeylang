@@ -14,4 +14,5 @@ const (
 	ARRAY_OBJ        ObjectType = "ARRAY"
 	HASH_OBJ         ObjectType = "HASH"
 	QUOTE_OBJ        ObjectType = "QUOTE"
+	MACRO_OBJ        ObjectType = "MACRO"
 )

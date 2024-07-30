@@ -92,3 +92,7 @@ func (i *Integer) Deval() (ast.Node, error) {
 	}
 	return ast.NewIntegerLiteral(t, i.Value), nil
 }
+
+func (m *Macro) Deval() (ast.Node, error) {
+	return nil, newDevalForTypeNotSupportedError(m)
+}
