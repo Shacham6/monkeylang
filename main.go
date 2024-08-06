@@ -50,7 +50,13 @@ func startFile(file string) {
 	}
 
 	env := object.NewEnvironment()
-	evaluationResult := evaluator.Eval(program, env)
+	macroEnv := object.NewEnvironment()
+
+	evaluator.DefineMacros(program, macroEnv)
+	expandedProgram := evaluator.ExpandMacros(program, macroEnv)
+
+	evaluationResult := evaluator.Eval(expandedProgram, env)
+
 	if evaluationResult.Type() == object.ERROR_OBJ {
 		io.WriteString(os.Stderr, fmt.Sprintf("Encountered a runtime error: %s\n", evaluationResult.Inspect()))
 	}
