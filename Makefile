@@ -1,8 +1,10 @@
+TEST_FLAGS=""
+
 build:
 	@go build -o targets/ .
 
 test:
-	@go test ./...
+	@go test $(TEST_FLAGS) ./...
 
 exhaustive:
 	@go run github.com/nishanths/exhaustive/cmd/exhaustive@latest ./...
