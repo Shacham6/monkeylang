@@ -6,7 +6,7 @@ This is yet another implementation of the Monkey Programming Language authored b
 
 This project was not made with challenging the status quo in mind, but rather of a personal want to see through a project like this to the end.
 
-## Example
+## Example 1
 
 Given The script `myscript.monkey`:
 
@@ -32,3 +32,21 @@ my_map[result_one]()
 This is my programming language
 this is so cool
 ```
+
+## Example 2 - The Macro System
+
+We also have macros!
+
+```
+let unless = macro(condition, consequence, alternative) {
+	quote(if (!(unquote(condition))) {
+		unquote(consequence);
+	} else {
+		unquote(alternative);
+	});
+}
+
+unless(10 > 5, puts("not greater"), puts("greater"));
+```
+
+Running this will result in `greater` to be printed.
