@@ -9,6 +9,22 @@ import (
 	"testing"
 )
 
+func testParseProgram(t *testing.T, input string) *ast.Program {
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	if len(p.Errors()) > 0 {
+		t.Logf("got unexpected parsing %d errors", len(p.Errors()))
+		for _, parsingErr := range p.Errors() {
+			t.Errorf("PARSING ERROR | %s", parsingErr)
+		}
+
+		t.FailNow()
+	}
+
+	return program
+}
+
 func TestDefineMacros(t *testing.T) {
 	input := `
 	let number = 1
@@ -63,18 +79,39 @@ func TestDefineMacros(t *testing.T) {
 	}
 }
 
-func testParseProgram(t *testing.T, input string) *ast.Program {
-	l := lexer.New(input)
-	p := parser.New(l)
-	program := p.ParseProgram()
-	if len(p.Errors()) > 0 {
-		t.Logf("got unexpected parsing %d errors", len(p.Errors()))
-		for _, parsingErr := range p.Errors() {
-			t.Errorf("PARSING ERROR | %s", parsingErr)
-		}
-
-		t.FailNow()
+func TestExpandMacros(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			`
+			let infixExpression = macro() { quote(1 + 2); };
+			infixExpression();
+			`,
+			`(1 + 2)`,
+		},
+		{
+			`
+			let reverse = macro(a, b) { quote(unquote(b) - unquote(a)); }
+			reverse(2 + 2, 10 - 5);
+			`,
+			`(10 - 5) - (2 + 2)`,
+		},
 	}
 
-	return program
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			expected := testParseProgram(t, tt.expected)
+			program := testParseProgram(t, tt.input)
+
+			env := object.NewEnvironment()
+			evaluator.DefineMacros(program, env)
+			expanded := evaluator.ExpandMacros(program, env)
+
+			if expanded.String() != expected.String() {
+				t.Errorf("expanded not equal to expected, got = %q, want = %q", expanded.String(), expected.String())
+			}
+		})
+	}
 }
