@@ -13,8 +13,8 @@ func TestMake(t *testing.T) {
 	}{
 		{
 			code.OpConstant,
-			[]int{65534},
-			[]byte{byte(code.OpConstant), 255, 254},
+			[]int{0xfffffe}, // damn this is hard
+			[]byte{byte(code.OpConstant), 0xff, 0xfe},
 		},
 	}
 
