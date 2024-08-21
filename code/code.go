@@ -2,8 +2,6 @@ package code
 
 import "encoding/binary"
 
-type Instructions []byte
-
 type Opcode byte
 
 func Make(op Opcode, operands ...int) []byte {
