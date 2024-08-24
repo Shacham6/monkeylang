@@ -53,7 +53,7 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 
 		err = testConstants(tt.expectedConstants, bytecode.Constants)
 		if err != nil {
-			t.Fatalf("testContants failed: %s", err)
+			t.Fatalf("testConstants failed: %s", err)
 		}
 	}
 }
@@ -74,7 +74,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 
 	if len(actual) != len(concatted) {
 		return fmt.Errorf(
-			"wrong instructions length.\n want = %q,\n got = %q",
+			"wrong instructions length.\n want = %q,\n got  = %q",
 			concatted,
 			actual,
 		)
