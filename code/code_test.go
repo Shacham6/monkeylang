@@ -16,6 +16,11 @@ func TestMake(t *testing.T) {
 			[]int{0xfffffe}, // damn this is hard
 			[]byte{byte(code.OpConstant), 0xff, 0xfe},
 		},
+		{
+			code.OpAdd,
+			[]int{}, // no operands because operates on values that are already pushed in the stack.
+			[]byte{byte(code.OpAdd)},
+		},
 	}
 
 	for _, tt := range tests {
