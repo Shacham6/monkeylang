@@ -17,7 +17,7 @@ const PROMPT = ">> "
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
-	env := object.NewEnvironment()
+	// env := object.NewEnvironment()
 	macroEnv := object.NewEnvironment()
 
 	for {
@@ -50,6 +50,9 @@ func Start(in io.Reader, out io.Writer) {
 		if err := machine.Run(); err != nil {
 			fmt.Fprintf(out, "Executing bytecode failed:\n%s\n", err)
 		}
+
+		stackTop := machine.StackTop()
+		fmt.Fprintf(out, "%s\n", stackTop.Inspect())
 
 		// evaluated := evaluator.Eval(expanded, env)
 		// if evaluated != nil {
