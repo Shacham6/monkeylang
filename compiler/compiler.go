@@ -53,7 +53,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpConstant, c.addConstant(integer))
 
 	default:
-		panic(fmt.Sprintf("either don't support node of type %T", node))
+		panic(fmt.Sprintf("don't support node of type %T", node))
 	}
 	return nil
 }
