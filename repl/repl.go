@@ -42,7 +42,7 @@ func Start(in io.Reader, out io.Writer) {
 
 		comp := compiler.New()
 
-		if err := comp.Compile(program); err != nil {
+		if err := comp.Compile(expanded); err != nil {
 			fmt.Fprintf(out, "Oops! Compilation failed:\n%s\n", err)
 		}
 
@@ -51,10 +51,10 @@ func Start(in io.Reader, out io.Writer) {
 			fmt.Fprintf(out, "Executing bytecode failed:\n%s\n", err)
 		}
 
-		evaluated := evaluator.Eval(expanded, env)
-		if evaluated != nil {
-			fmt.Fprintf(out, "%s\n", evaluated.Inspect())
-		}
+		// evaluated := evaluator.Eval(expanded, env)
+		// if evaluated != nil {
+		// 	fmt.Fprintf(out, "%s\n", evaluated.Inspect())
+		// }
 	}
 }
 
