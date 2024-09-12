@@ -14,10 +14,42 @@ import (
 
 const PROMPT = ">> "
 
-func Start(in io.Reader, out io.Writer) {
+func StartTree(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
-	// env := object.NewEnvironment()
+	env := object.NewEnvironment()
+	macroEnv := object.NewEnvironment()
+
+	for {
+		fmt.Fprintf(out, "%s", PROMPT)
+		scanned := scanner.Scan()
+		if !scanned {
+			return
+		}
+
+		line := scanner.Text()
+		l := lexer.New(line)
+		p := parser.New(l)
+
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
+		}
+
+		evaluator.DefineMacros(program, macroEnv)
+		expanded := evaluator.ExpandMacros(program, macroEnv)
+
+		evaluated := evaluator.Eval(expanded, env)
+		if evaluated != nil {
+			fmt.Fprintf(out, "%s\n", evaluated.Inspect())
+		}
+	}
+}
+
+func StartCompiled(in io.Reader, out io.Writer) {
+	scanner := bufio.NewScanner(in)
+
 	macroEnv := object.NewEnvironment()
 
 	for {
@@ -53,11 +85,6 @@ func Start(in io.Reader, out io.Writer) {
 
 		stackTop := machine.StackTop()
 		fmt.Fprintf(out, "%s\n", stackTop.Inspect())
-
-		// evaluated := evaluator.Eval(expanded, env)
-		// if evaluated != nil {
-		// 	fmt.Fprintf(out, "%s\n", evaluated.Inspect())
-		// }
 	}
 }
 
