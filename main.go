@@ -35,7 +35,16 @@ func main() {
 		return
 	}
 
-	fileexec.ExecFile(args.File)
+	switch args.Engine {
+	case ENGINE_VM:
+		fileexec.ExecFileCompiled(args.File)
+		return
+	case ENGINE_TREE:
+		fileexec.ExecFileTree(args.File)
+		return
+	default:
+		log.Fatalf("Executing a file with engine of type %s is not supported", args.Engine)
+	}
 }
 
 type EngineType string

@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-func ExecFile(filepath string) {
+func ExecFileCompiled(filepath string) {
 	buff, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed reading file at the given path with an error:\n%v\n", err)
@@ -28,7 +28,6 @@ func ExecFile(filepath string) {
 		os.Exit(1)
 	}
 
-	// env := object.NewEnvironment()
 	macroEnv := object.NewEnvironment()
 
 	evaluator.DefineMacros(program, macroEnv)
@@ -45,12 +44,34 @@ func ExecFile(filepath string) {
 		fmt.Fprintf(os.Stderr, "Whoop! Failed execution with an error:\n%s\n", err)
 		os.Exit(1)
 	}
+}
 
-	// evaluationResult := evaluator.Eval(expandedProgram, env)
-	//
-	// if evaluationResult.Type() == object.ERROR_OBJ {
-	// 	fmt.Fprintf(os.Stderr, "Encountered a runtime error: %s\n", evaluationResult.Inspect())
-	// }
+func ExecFileTree(filepath string) {
+	buff, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed reading file at the given path with an error:\n%v\n", err)
+		os.Exit(1)
+	}
+
+	parser := parser.New(lexer.New(string(buff)))
+	program := parser.ParseProgram()
+	if len(parser.Errors()) > 0 {
+		printParserErrors(os.Stderr, parser.Errors())
+		// If we have errors we cannot reliably continue to evaluate anything.
+		os.Exit(1)
+	}
+
+	env := object.NewEnvironment()
+	macroEnv := object.NewEnvironment()
+
+	evaluator.DefineMacros(program, macroEnv)
+	expandedProgram := evaluator.ExpandMacros(program, macroEnv)
+
+	evaluationResult := evaluator.Eval(expandedProgram, env)
+
+	if evaluationResult.Type() == object.ERROR_OBJ {
+		fmt.Fprintf(os.Stderr, "Encountered a runtime error: %s\n", evaluationResult.Inspect())
+	}
 }
 
 func printParserErrors(out io.Writer, errors []string) {
