@@ -75,12 +75,14 @@ func StartCompiled(in io.Reader, out io.Writer) {
 		comp := compiler.New()
 
 		if err := comp.Compile(expanded); err != nil {
-			fmt.Fprintf(out, "Oops! Compilation failed:\n%s\n", err)
+			fmt.Fprintf(out, "Oops! Compilation failed:\n\t%s\n", err)
+			continue
 		}
 
 		machine := vm.New(comp.Bytecode())
 		if err := machine.Run(); err != nil {
-			fmt.Fprintf(out, "Executing bytecode failed:\n%s\n", err)
+			fmt.Fprintf(out, "Executing bytecode failed:\n\t%s\n", err)
+			continue
 		}
 
 		stackTop := machine.StackTop()
