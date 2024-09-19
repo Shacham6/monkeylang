@@ -39,6 +39,24 @@ func (vm *VM) StackTop() object.Object {
 	return vm.stack[vm.sp-1]
 }
 
+// LastPoppedStackElem returns the "overflown" value from the stack,
+// suggesting that the value was popped itself.
+//
+// This operation is not safe, and if nothing was popped and this
+// method called - the program will crash.
+//
+// The reason this works is that "popping" the stack does not explicitly
+// delete the data. Instead, the pointer marking length of written data
+// is decremented, signaling that this section of the stack is now writeable.
+func (vm *VM) LastPoppedStackElem() object.Object {
+	if vm.sp >= len(vm.stack) {
+		panic(
+			"Attempting to view last popped stack elem before anything was ever popped, this state should be impossible!",
+		)
+	}
+	return vm.stack[vm.sp]
+}
+
 func (vm *VM) Run() error {
 	for ip := 0; ip < len(vm.instructions); ip++ {
 		// we're on the *hot* path, this is the actual execution of the vm, thus
@@ -61,6 +79,9 @@ func (vm *VM) Run() error {
 			rightValue := right.(*object.Integer).Value
 			result := leftValue + rightValue
 			vm.push(&object.Integer{Value: result})
+
+		case code.OpPop:
+			vm.pop()
 
 		default:
 			rawCode := vm.instructions[ip]

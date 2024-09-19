@@ -85,7 +85,7 @@ func StartCompiled(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		stackTop := machine.StackTop()
+		stackTop := machine.LastPoppedStackElem()
 		fmt.Fprintf(out, "%s\n", stackTop.Inspect())
 	}
 }
