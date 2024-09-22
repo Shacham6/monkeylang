@@ -71,14 +71,10 @@ func (vm *VM) Run() error {
 				return err
 			}
 
-		case code.OpAdd:
-			right := vm.pop()
-			left := vm.pop()
-			// we're explicitly expecting only numbers here, will fail on floats.
-			leftValue := left.(*object.Integer).Value
-			rightValue := right.(*object.Integer).Value
-			result := leftValue + rightValue
-			vm.push(&object.Integer{Value: result})
+		case code.OpAdd, code.OpSub, code.OpDiv, code.OpMul:
+			if err := vm.executeBinaryOperation(op); err != nil {
+				return err
+			}
 
 		case code.OpPop:
 			vm.pop()
@@ -95,6 +91,64 @@ func (vm *VM) Run() error {
 			// changing into a panic maybe?
 			return fmt.Errorf("opcode %s not yet supported", definition.Name)
 		}
+	}
+
+	return nil
+}
+
+func (vm *VM) executeBinaryOperation(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	// @Shacham:
+	// we're explicitly expecting only numbers here, will fail on floats.
+	// on the other hand i'm pretty certain we don't support floats at all
+	// as of now... so yeah.
+
+	leftType := left.Type()
+	rightType := right.Type()
+
+	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
+		return vm.executeBinaryIntegerOperation(op, left, right)
+	}
+
+	return fmt.Errorf(
+		"unsupported types for binary operations: %s %s",
+		leftType,
+		rightType,
+	)
+}
+
+func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left object.Object, right object.Object) error {
+	leftInteger, ok := left.(*object.Integer)
+	if !ok {
+		return fmt.Errorf("%s an invalid %s", left.Inspect(), left.Type())
+	}
+
+	rightInteger, ok := right.(*object.Integer)
+	if !ok {
+		return fmt.Errorf("%s an invalid %s", right.Inspect(), right.Type())
+	}
+
+	leftValue, rightValue := leftInteger.Value, rightInteger.Value
+
+	var result int64
+	switch op {
+	case code.OpAdd:
+		result = leftValue + rightValue
+	case code.OpSub:
+		result = leftValue - rightValue
+	case code.OpMul:
+		result = leftValue * rightValue
+	case code.OpDiv:
+		result = leftValue / rightValue
+	default:
+		return fmt.Errorf("unsupported integer operator: %d", op)
+	}
+
+	integerResult := object.Integer{Value: result}
+	if err := vm.push(&integerResult); err != nil {
+		return err
 	}
 
 	return nil
