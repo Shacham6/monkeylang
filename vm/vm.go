@@ -9,6 +9,11 @@ import (
 
 const StackSize = 2048
 
+var (
+	constTrue  = &object.Boolean{Value: true}
+	constFalse = &object.Boolean{Value: false}
+)
+
 type VM struct {
 	// parts of the bytescode
 	constants    []object.Object
@@ -78,6 +83,16 @@ func (vm *VM) Run() error {
 
 		case code.OpPop:
 			vm.pop()
+
+		case code.OpTrue:
+			if err := vm.push(constTrue); err != nil {
+				return err
+			}
+
+		case code.OpFalse:
+			if err := vm.push(constFalse); err != nil {
+				return err
+			}
 
 		default:
 			rawCode := vm.instructions[ip]
