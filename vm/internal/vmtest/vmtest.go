@@ -34,6 +34,19 @@ func testIntegerObject(expected int64, actual object.Object) error {
 	return nil
 }
 
+func testBooleanObject(expected bool, actual object.Object) error {
+	result, ok := actual.(*object.Boolean)
+	if !ok {
+		return fmt.Errorf("object is not *object.Boolean. got = %T (%+V)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("result has wrong value. got = %t, want = %t", actual, expected)
+	}
+
+	return nil
+}
+
 func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	t.Helper()
 
@@ -41,6 +54,11 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	case int64:
 		if err := testIntegerObject(expected, actual); err != nil {
 			t.Fatalf("testIntegerObject failed: %s", err)
+		}
+
+	case bool:
+		if err := testBooleanObject(expected, actual); err != nil {
+			t.Fatalf("testBooleanObject failed: %s", err)
 		}
 	}
 }

@@ -17,3 +17,10 @@ func TestIntegerArithmetic(t *testing.T) {
 		vmtest.New("4 / 2 * 2 + 2 - 2", 4),
 	})
 }
+
+func TestBooleanExpressions(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New("true", true),
+		vmtest.New("false", false),
+	})
+}
