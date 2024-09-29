@@ -94,6 +94,11 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
+			if err := vm.executeComparison(op); err != nil {
+				return err
+			}
+
 		default:
 			rawCode := vm.instructions[ip]
 			definition, err := code.Lookup(rawCode)
@@ -109,6 +114,51 @@ func (vm *VM) Run() error {
 	}
 
 	return nil
+}
+
+func (vm *VM) executeComparison(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparison(op, left, right)
+	}
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToObjectBool(left == right))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToObjectBool(left != right))
+	default:
+		return fmt.Errorf("unknown operator: %d (%s %s)", op, left.Type(), right.Type())
+	}
+}
+
+func (vm *VM) executeIntegerComparison(
+	op code.Opcode,
+	left object.Object, right object.Object,
+) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToObjectBool(leftValue == rightValue))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToObjectBool(leftValue != rightValue))
+	case code.OpGreaterThan:
+		return vm.push(nativeBoolToObjectBool(leftValue > rightValue))
+	default:
+		panic(fmt.Sprintf("unexpected code.Opcode: %#v", op))
+	}
+	// if complaints about missing return, means that a branch is missing a return clause.
+}
+
+func nativeBoolToObjectBool(b bool) object.Object {
+	if b {
+		return constTrue
+	}
+	return constFalse
 }
 
 func (vm *VM) executeBinaryOperation(op code.Opcode) error {
