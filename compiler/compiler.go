@@ -87,6 +87,20 @@ func (c *Compiler) Compile(node ast.Node) error {
 		integer := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(integer))
 
+	case *ast.PrefixExpression:
+		if err := c.Compile(node.Right); err != nil {
+			return err
+		}
+
+		switch node.Operator {
+		case "-":
+			c.emit(code.OpMinus)
+		case "!":
+			c.emit(code.OpBang)
+		default:
+			panic(fmt.Sprintf("prefix operator %s is not supported", node.Operator))
+		}
+
 	default:
 		panic(fmt.Sprintf("don't support node of type %T", node))
 	}
