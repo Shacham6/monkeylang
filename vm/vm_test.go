@@ -15,6 +15,10 @@ func TestIntegerArithmetic(t *testing.T) {
 		vmtest.New("4 / 2", 2),
 		vmtest.New("((1 + 2 - 1) * 2) / 2", 2),
 		vmtest.New("4 / 2 * 2 + 2 - 2", 4),
+		vmtest.New("-5", -5),
+		vmtest.New("-10", -10),
+		vmtest.New("-50 + 100 + -50", 0),
+		vmtest.New("(5 + 10 * 2 + 15 / 3) * 2 + -10", 50),
 	})
 }
 
@@ -40,5 +44,11 @@ func TestBooleanExpressions(t *testing.T) {
 		vmtest.New("(1 < 2) == false", false),
 		vmtest.New("(1 > 2) == true", false),
 		vmtest.New("(1 < 2) == true", true),
+		vmtest.New("!true", false),
+		vmtest.New("!false", true),
+		vmtest.New("!5", false),
+		vmtest.New("!!true", true),
+		vmtest.New("!!false", false),
+		vmtest.New("!!5", true),
 	})
 }

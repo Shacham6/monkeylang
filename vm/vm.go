@@ -99,6 +99,16 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpBang:
+			if err := vm.executeBangOperator(); err != nil {
+				return err
+			}
+
+		case code.OpMinus:
+			if err := vm.executeMinusOperator(); err != nil {
+				return err
+			}
+
 		default:
 			rawCode := vm.instructions[ip]
 			definition, err := code.Lookup(rawCode)
@@ -114,6 +124,30 @@ func (vm *VM) Run() error {
 	}
 
 	return nil
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+
+	switch operand {
+	case constTrue:
+		return vm.push(constFalse)
+	case constFalse:
+		return vm.push(constTrue)
+	default:
+		return vm.push(constFalse)
+	}
+}
+
+func (vm *VM) executeMinusOperator() error {
+	operand := vm.pop()
+	if operand.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("prefix operator '-' not supported for type '%s'", operand.Type())
+	}
+
+	value := operand.(*object.Integer).Value
+
+	return vm.push(&object.Integer{Value: value})
 }
 
 func (vm *VM) executeComparison(op code.Opcode) error {
