@@ -35,7 +35,14 @@ var definitions = map[Opcode]*Definition{
 }
 
 type Definition struct {
-	Name          string
+	Name string
+
+	// OperandWidths is the widths of the different operands.
+	//
+	// Each element represents a different operand, and the value is its size
+	// in bytes.
+	// An example value of "[]int{2}" means that the Definition has a single
+	// operand, sized at 16 bytes (or 2x8).
 	OperandWidths []int
 }
 
