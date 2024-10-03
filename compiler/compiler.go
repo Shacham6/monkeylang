@@ -185,12 +185,17 @@ func (c *Compiler) removeLastInstruction() {
 	c.lastInstruction = c.prevInstruction
 }
 
+// replaceInstruction replaces an instruction, defined at pos, with the newInstruction.
+//
+// Please be careful using this. Unless the instruction at pos and the new instruction
+// are of the same size, you are risking an overflow. Tread carefully.
 func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
 	for i := 0; i < len(newInstruction); i++ {
 		c.instructions[pos+i] = newInstruction[i]
 	}
 }
 
+// changeOperand changes the operand of the instruction at opPos.
 func (c *Compiler) changeOperand(opPos int, operand int) {
 	op := code.Opcode(c.instructions[opPos])
 	newInstruction := code.Make(op, operand)
