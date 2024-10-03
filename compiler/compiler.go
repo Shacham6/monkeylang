@@ -123,14 +123,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		// Shacham:
-		// I'll follow instructions for now, which consists of filling in bogus offsets
-		// and correcting them later. But I still wonder about the merits of compiling
-		// these on _new_ instance of Compiler, copying the data with "corrected" offset.
-		// The reason I tend to maybe like _that_ sightly more is parallelization potential.
-
 		// Emit the opcode with a bogus offset
-		_ = c.emit(code.OpJumpNotTruthy, 9999)
+		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
 		if err := c.Compile(node.Consequence()); err != nil {
 			return err
 		}
@@ -138,6 +132,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if c.lastInstruction.Opcode == code.OpPop {
 			c.removeLastInstruction()
 		}
+
+		afterConsequencePos := len(c.instructions)
+		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
 
 		return nil
 
@@ -186,6 +183,19 @@ func (c *Compiler) updateLastInstruction(op code.Opcode, pos int) {
 func (c *Compiler) removeLastInstruction() {
 	c.instructions = c.instructions[:c.lastInstruction.Position]
 	c.lastInstruction = c.prevInstruction
+}
+
+func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+	for i := 0; i < len(newInstruction); i++ {
+		c.instructions[pos+i] = newInstruction[i]
+	}
+}
+
+func (c *Compiler) changeOperand(opPos int, operand int) {
+	op := code.Opcode(c.instructions[opPos])
+	newInstruction := code.Make(op, operand)
+
+	c.replaceInstruction(opPos, newInstruction)
 }
 
 func (c *Compiler) addInstruction(ins []byte) int {
