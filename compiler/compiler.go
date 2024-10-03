@@ -135,6 +135,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+		if c.lastInstruction.Opcode == code.OpPop {
+			c.removeLastInstruction()
+		}
+
 		return nil
 
 	case *ast.BlockStatement:
@@ -177,6 +181,11 @@ func (c *Compiler) updateLastInstruction(op code.Opcode, pos int) {
 	}
 	c.prevInstruction = previous
 	c.lastInstruction = last
+}
+
+func (c *Compiler) removeLastInstruction() {
+	c.instructions = c.instructions[:c.lastInstruction.Position]
+	c.lastInstruction = c.prevInstruction
 }
 
 func (c *Compiler) addInstruction(ins []byte) int {

@@ -255,7 +255,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 	for i, ins := range concatted {
 		if actual[i] != ins {
 			return fmt.Errorf(
-				"wrong instruction at %d.\n want = %q (indexed = %q),\n got = %q (indexed = %q)",
+				"wrong instruction at %d.\n want = %q (indexed = %q),\n got  = %q (indexed = %q)",
 				i,
 				concatted,
 				ins,
