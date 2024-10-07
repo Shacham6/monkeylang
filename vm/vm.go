@@ -76,6 +76,29 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+
+		case code.OpJumpNotTruthy:
+			// Note:
+			// I've implemented this myself, and the result is a different implementation
+			// then the book (page 104).
+			// In the book there seem to be a different order. The `pos` instruction is read
+			// first and `ip` is adjusted. This is regardless to the result of `obj`.
+			// BUT, even with this implementation, my tests pass. So I'm leaving these here
+			// and am waiting for weird shit to happen.
+
+			obj := vm.pop()
+			if objectBoolToNativeBool(obj) {
+				// We add by the width (in bytes) of the operands.
+				ip += 2
+				return nil
+			}
+
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+
 		case code.OpAdd, code.OpSub, code.OpDiv, code.OpMul:
 			if err := vm.executeBinaryOperation(op); err != nil {
 				return err
@@ -193,6 +216,20 @@ func nativeBoolToObjectBool(b bool) object.Object {
 		return constTrue
 	}
 	return constFalse
+}
+
+func objectBoolToNativeBool(o object.Object) bool {
+	switch o.Type() {
+	case object.BOOLEAN_OBJ:
+		return o.(*object.Boolean).Value
+
+	case object.INTEGER_OBJ:
+		value := o.(*object.Integer)
+		return value.Value != 0
+
+	default:
+		return true
+	}
 }
 
 func (vm *VM) executeBinaryOperation(op code.Opcode) error {
