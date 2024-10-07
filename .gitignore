@@ -27,3 +27,5 @@ go.work
 
 targets/
 
+# Reserved for internal tooling
+/.bin/
