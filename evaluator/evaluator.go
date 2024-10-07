@@ -241,8 +241,8 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 
 	if isTruthy(condition) {
 		return Eval(ie.Consequence(), env)
-	} else if ie.Alternative().Ok() {
-		return Eval(ie.Alternative().Content(), env)
+	} else if alt, ok := ie.Alternative(); ok {
+		return Eval(alt, env)
 	} else {
 		return &NULL
 	}

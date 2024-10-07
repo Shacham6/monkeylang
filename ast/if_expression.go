@@ -28,9 +28,10 @@ func (i *IfExpression) Consequence() *BlockStatement {
 	return i.consequence
 }
 
-func (i *IfExpression) Alternative() *IfExpressionAlternative {
-	return i.alternative
+func (i *IfExpression) Alternative() (*BlockStatement, bool) {
+	return i.alternative.Content(), i.alternative.Ok()
 }
+
 func (i *IfExpression) expressionNode() {}
 
 func (i *IfExpression) TokenLiteral() string {

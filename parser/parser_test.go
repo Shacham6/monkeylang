@@ -594,8 +594,10 @@ func TestIfExpression(t *testing.T) {
 		return
 	}
 
-	if exp.Alternative().Ok() {
-		t.Errorf("Got an unexpected alternative. got = %+v", exp.Alternative().Content())
+	alt, ok := exp.Alternative()
+
+	if ok {
+		t.Errorf("Got an unexpected alternative. got = %+v", alt)
 	}
 }
 
@@ -640,8 +642,10 @@ func TestIfElseExpression(t *testing.T) {
 		return
 	}
 
-	if !exp.Alternative().Ok() {
-		t.Errorf("Got an unexpected alternative. got = %+v", exp.Alternative().Content())
+	alt, ok := exp.Alternative()
+
+	if !ok {
+		t.Errorf("Got an unexpected alternative. got = %+v", alt)
 	}
 }
 
