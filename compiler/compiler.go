@@ -133,8 +133,27 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastInstruction()
 		}
 
-		afterConsequencePos := len(c.instructions)
-		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		alternative, hasAlternative := node.Alternative()
+
+		if !hasAlternative {
+			afterConsequencePos := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		} else {
+			// Emit an 'OpJump' with a bogus value
+			jumpPos := c.emit(code.OpJump, 9999)
+
+			afterConsequencePos := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+			if err := c.Compile(alternative); err != nil {
+				return err
+			}
+
+			if c.lastInstruction.Opcode == code.OpPop {
+				c.removeLastInstruction()
+			}
+			c.changeOperand(jumpPos, len(c.instructions))
+		}
 
 		return nil
 
