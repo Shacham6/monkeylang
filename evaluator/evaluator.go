@@ -132,7 +132,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return &object.ReturnValue{Value: val}
 	}
-	return newError(fmt.Sprintf("Cannot handle node of type %T", node))
+	return newError("Cannot handle node of type %T", node)
 }
 
 func evalHashLiteral(h *ast.HashLiteral, env *object.Environment) object.Object {

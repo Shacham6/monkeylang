@@ -33,5 +33,3 @@ func (m *Macro) Inspect() string {
 
 	return out.String()
 }
-
-var x Object = &Macro{}

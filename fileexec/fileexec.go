@@ -75,9 +75,9 @@ func ExecFileTree(filepath string) {
 }
 
 func printParserErrors(out io.Writer, errors []string) {
-	io.WriteString(out, "Oops! We ran into some monkey business here!\n")
-	io.WriteString(out, "parser errors:\n")
+	fmt.Fprintf(out, "%s", "Oops! We ran into some monkey business here!\n")
+	fmt.Fprintf(out, "%s", "parser errors:\n")
 	for _, msg := range errors {
-		io.WriteString(out, "\t"+msg+"\n")
+		fmt.Fprintf(out, "%s", "\t"+msg+"\n")
 	}
 }

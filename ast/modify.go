@@ -11,7 +11,9 @@ type modifiable interface {
 }
 
 func Modify(node Node, modifier ModifierFunc) (Node, error) {
-	node.modify(modifier)
+	if err := node.modify(modifier); err != nil {
+		return nil, err
+	}
 	return modifier(node)
 }
 
