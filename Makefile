@@ -4,6 +4,9 @@ TEST_FLAGS=""
 export GOBIN ?= $(shell pwd)/.bin/
 export PATH := ${GOBIN}:${PATH}
 
+all:
+	$(MAKE) -k lint test
+
 build:
 	@go build -o targets/ .
 
