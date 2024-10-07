@@ -52,3 +52,17 @@ func TestBooleanExpressions(t *testing.T) {
 		vmtest.New("!!5", true),
 	})
 }
+
+func TestConditionals(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New("if (true) { 10 }", 10),
+		vmtest.New("if (true) { 10 } else { 20 }", 10),
+		vmtest.New("if (false) { 10 } else { 20 }", 20),
+		vmtest.New("if (true) { 5 + 5 } else { 20 }", 10),
+		vmtest.New("if (false) { 10 } else { 10 + 10 }", 20),
+		vmtest.New("if (1) {10}", 10),
+		vmtest.New("if (1 - 1) {10} else {20}", 20),
+		vmtest.New("if (1 < 2) {10} else {20}", 10),
+		vmtest.New("if (1 > 2) {10} else {20}", 20),
+	})
+}
