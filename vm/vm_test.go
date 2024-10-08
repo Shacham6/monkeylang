@@ -50,6 +50,7 @@ func TestBooleanExpressions(t *testing.T) {
 		vmtest.New("!!true", true),
 		vmtest.New("!!false", false),
 		vmtest.New("!!5", true),
+		vmtest.New("!null", true),
 	})
 }
 

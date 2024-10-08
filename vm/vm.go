@@ -164,7 +164,7 @@ func (vm *VM) executeBangOperator() error {
 	switch operand {
 	case constTrue:
 		return vm.push(constFalse)
-	case constFalse:
+	case constFalse, constNull:
 		return vm.push(constTrue)
 	default:
 		return vm.push(constFalse)
