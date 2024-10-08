@@ -60,6 +60,11 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	t.Helper()
 
 	switch expected := expected.(type) {
+	case int:
+		if err := testIntegerObject(int64(expected), actual); err != nil {
+			t.Fatalf("testIntegerObject failed: %s", err)
+		}
+
 	case int64:
 		if err := testIntegerObject(expected, actual); err != nil {
 			t.Fatalf("testIntegerObject failed: %s", err)
@@ -74,6 +79,9 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 		if err := testNilObject(actual); err != nil {
 			t.Fatalf("testNilObject failed: %s", err)
 		}
+
+	default:
+		t.Fatalf("expectation of type %T is not supported yet", expected)
 	}
 }
 

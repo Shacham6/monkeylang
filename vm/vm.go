@@ -97,7 +97,7 @@ func (vm *VM) Run() error {
 				// Linting error disabled since I cannot for the life of me understand _why_ that's the case.
 				ip += 2 //nolint:ineffassign
 
-				return nil
+				continue
 			}
 
 			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
@@ -179,7 +179,7 @@ func (vm *VM) executeMinusOperator() error {
 
 	value := operand.(*object.Integer).Value
 
-	return vm.push(&object.Integer{Value: value})
+	return vm.push(&object.Integer{Value: -value})
 }
 
 func (vm *VM) executeComparison(op code.Opcode) error {
@@ -235,6 +235,9 @@ func objectBoolToNativeBool(o object.Object) bool {
 	case object.INTEGER_OBJ:
 		value := o.(*object.Integer)
 		return value.Value != 0
+
+	case object.NULL_OBJ:
+		return false
 
 	default:
 		return true

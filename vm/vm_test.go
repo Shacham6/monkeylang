@@ -51,6 +51,7 @@ func TestBooleanExpressions(t *testing.T) {
 		vmtest.New("!!false", false),
 		vmtest.New("!!5", true),
 		vmtest.New("!null", true),
+		vmtest.New("!!null", false),
 	})
 }
 
@@ -73,5 +74,7 @@ func TestConditionals(t *testing.T) {
 		vmtest.New("if (1 > 2) {10} else {20}", 20),
 		vmtest.New("if (true) {10}; 20", 20),
 		vmtest.New("if (false) {false;}", nil),
+		vmtest.New("if (null) {10} else {20}", 20),
+		vmtest.New("if (null == null) {10}", 10),
 	})
 }
