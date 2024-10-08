@@ -165,6 +165,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		return nil
 
+	case *ast.Identifier:
+		if node.Value == "null" {
+			c.emit(code.OpNull)
+			return nil
+		}
+		panic("don't support identifiers that are not 'null' yet")
+
 	default:
 		panic(fmt.Sprintf("don't support node of type %T", node))
 	}
