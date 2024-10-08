@@ -53,6 +53,12 @@ func TestBooleanExpressions(t *testing.T) {
 	})
 }
 
+func TestNil(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New("null", nil),
+	})
+}
+
 func TestConditionals(t *testing.T) {
 	vmtest.RunVmTests(t, []vmtest.VmTestCase{
 		vmtest.New("if (true) { 10 }", 10),

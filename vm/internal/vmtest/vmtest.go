@@ -47,6 +47,15 @@ func testBooleanObject(expected bool, actual object.Object) error {
 	return nil
 }
 
+func testNilObject(actual object.Object) error {
+	_, ok := actual.(*object.Null)
+	if ok {
+		return nil
+	}
+
+	return fmt.Errorf("object is not null. got = %T", actual)
+}
+
 func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	t.Helper()
 
@@ -59,6 +68,11 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	case bool:
 		if err := testBooleanObject(expected, actual); err != nil {
 			t.Fatalf("testBooleanObject failed: %s", err)
+		}
+
+	case nil:
+		if err := testNilObject(actual); err != nil {
+			t.Fatalf("testNilObject failed: %s", err)
 		}
 	}
 }

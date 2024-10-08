@@ -12,6 +12,7 @@ const StackSize = 2048
 var (
 	constTrue  = &object.Boolean{Value: true}
 	constFalse = &object.Boolean{Value: false}
+	constNull  = &object.Null{}
 )
 
 type VM struct {
