@@ -118,6 +118,11 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpNull:
+			if err := vm.push(constNull); err != nil {
+				return err
+			}
+
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			if err := vm.executeComparison(op); err != nil {
 				return err
