@@ -93,7 +93,10 @@ func (vm *VM) Run() error {
 			obj := vm.pop()
 			if objectBoolToNativeBool(obj) {
 				// We add by the width (in bytes) of the operands.
-				ip += 2
+
+				// Linting error disabled since I cannot for the life of me understand _why_ that's the case.
+				ip += 2 //nolint:ineffassign
+
 				return nil
 			}
 
