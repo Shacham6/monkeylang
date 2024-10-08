@@ -9,6 +9,7 @@ const (
 	OpMul
 	OpDiv
 	OpPop
+	OpNull
 	OpTrue
 	OpFalse
 	OpEqual
@@ -27,6 +28,7 @@ var definitions = map[Opcode]*Definition{
 	OpMul:           {"OpMul", []int{}},
 	OpDiv:           {"OpDiv", []int{}},
 	OpPop:           {"OpPop", []int{}},
+	OpNull:          {"OpNull", []int{}},
 	OpTrue:          {"OpTrue", []int{}},
 	OpFalse:         {"OpFalse", []int{}},
 	OpEqual:         {"OpEqual", []int{}},
