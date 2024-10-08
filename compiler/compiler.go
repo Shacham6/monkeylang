@@ -124,7 +124,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		// Emit the opcode with a bogus offset
-		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+		jumpNotTruthyInstuctionPos := c.emit(code.OpJumpNotTruthy, 9999)
 		if err := c.Compile(node.Consequence()); err != nil {
 			return err
 		}
@@ -133,27 +133,30 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastInstruction()
 		}
 
-		alternative, hasAlternative := node.Alternative()
+		// Emit the opcode with a bogus offset
+		jumpInstructionPos := c.emit(code.OpJump, 9999)
 
-		if !hasAlternative {
-			afterConsequencePos := len(c.instructions)
-			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		c.changeOperand(
+			jumpNotTruthyInstuctionPos,
+			len(c.instructions),
+		)
+
+		alt, hasAlt := node.Alternative()
+		if !hasAlt {
+			c.emit(code.OpNull)
 		} else {
-			// Emit an 'OpJump' with a bogus value
-			jumpPos := c.emit(code.OpJump, 9999)
-
-			afterConsequencePos := len(c.instructions)
-			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
-
-			if err := c.Compile(alternative); err != nil {
+			if err := c.Compile(alt); err != nil {
 				return err
 			}
 
 			if c.lastInstruction.Opcode == code.OpPop {
 				c.removeLastInstruction()
 			}
-			c.changeOperand(jumpPos, len(c.instructions))
 		}
+		c.changeOperand(
+			jumpInstructionPos,
+			len(c.instructions),
+		)
 
 		return nil
 
