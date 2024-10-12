@@ -18,6 +18,8 @@ type Compiler struct {
 
 	lastInstruction EmittedInstruction
 	prevInstruction EmittedInstruction
+
+	symbolTable *SymbolTable
 }
 
 func New() *Compiler {
@@ -27,6 +29,8 @@ func New() *Compiler {
 
 		lastInstruction: EmittedInstruction{},
 		prevInstruction: EmittedInstruction{},
+
+		symbolTable: NewSymbolTable(),
 	}
 }
 
@@ -174,6 +178,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return nil
 		}
 		panic("don't support identifiers that are not 'null' yet")
+
+	case *ast.LetStatement:
+		if err := c.Compile(node.Value); err != nil {
+			return err
+		}
+		symbol := c.symbolTable.Define(node.Name.Value)
+		c.emit(code.OpSetGlobal, symbol.Index)
+		return nil
 
 	default:
 		panic(fmt.Sprintf("don't support node of type %T", node))
