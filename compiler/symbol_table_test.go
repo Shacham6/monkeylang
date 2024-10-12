@@ -4,8 +4,8 @@ import "testing"
 
 func TestDefine(t *testing.T) {
 	expected := map[string]Symbol{
-		"a": {Name: "a", Scope: GlobalScope, Index: 0},
-		"b": {Name: "b", Scope: GlobalScope, Index: 1},
+		"a": NewSymbol("a", GlobalScope, 0),
+		"b": NewSymbol("b", GlobalScope, 1),
 	}
 
 	global := NewSymbolTable()
@@ -27,8 +27,8 @@ func TestResolveGlobal(t *testing.T) {
 	global.Define("b")
 
 	expected := []Symbol{
-		{Name: "a", Scope: GlobalScope, Index: 0},
-		{Name: "b", Scope: GlobalScope, Index: 1},
+		NewSymbol("a", GlobalScope, 0),
+		NewSymbol("b", GlobalScope, 1),
 	}
 
 	for _, sym := range expected {
