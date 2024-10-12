@@ -177,7 +177,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpNull)
 			return nil
 		}
-		panic("don't support identifiers that are not 'null' yet")
+
+		symbol, ok := c.symbolTable.Resolve(node.Value)
+		if !ok {
+			return fmt.Errorf("undefined variable: %s", node.Value)
+		}
+
+		c.emit(code.OpGetGlobal, symbol.Index)
+		return nil
 
 	case *ast.LetStatement:
 		if err := c.Compile(node.Value); err != nil {
