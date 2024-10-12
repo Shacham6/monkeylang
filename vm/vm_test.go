@@ -78,3 +78,11 @@ func TestConditionals(t *testing.T) {
 		vmtest.New("if (null == null) {10}", 10),
 	})
 }
+
+func TestGlobalLetStatements(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New("let a = 1; a", 1),
+		vmtest.New("let a = 1; let b = 2; a + b", 3),
+		vmtest.New("let a = 1; let b = a + a; a + b", 3),
+	})
+}
