@@ -7,7 +7,10 @@ import (
 	"monkey/object"
 )
 
-const StackSize = 2048
+const (
+	StackSize   = 2048
+	GlobalsSize = 65536
+)
 
 var (
 	constTrue  = &object.Boolean{Value: true}
@@ -23,15 +26,21 @@ type VM struct {
 	// mutating runtime things
 	stack []object.Object
 	sp    int // Always points to the next value. Top of stack is stack[sp-1]
+
+	globals []object.Object
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
+	stack := make([]object.Object, StackSize)
+	sp := 0
+	globals := make([]object.Object, GlobalsSize)
+
 	return &VM{
 		bytecode.Constants,
 		bytecode.Instructions,
-
-		make([]object.Object, StackSize),
-		0,
+		stack,
+		sp,
+		globals,
 	}
 }
 
