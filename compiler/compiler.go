@@ -34,6 +34,14 @@ func New() *Compiler {
 	}
 }
 
+func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
+	return &Compiler{
+		instructions: code.Instructions{},
+		constants:    constants,
+
+		lastInstruction: EmittedInstruction{}, //nolint:exhaustruct
+		prevInstruction: EmittedInstruction{}, //nolint:exhaustruct
+
 		symbolTable: NewSymbolTable(),
 	}
 }
