@@ -1,0 +1,6 @@
+linters:
+  enable-all: false
+  disable-all: false
+  fast: false
+  enable:
+    - exhaustruct

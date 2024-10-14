@@ -31,7 +31,7 @@ type Parser struct {
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{
+	p := &Parser{ //nolint:exhaustruct
 		l:      l,
 		errors: []string{},
 	}
@@ -117,7 +117,7 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseArrayLiteral() ast.Expression {
-	array := &ast.ArrayLiteral{Token: p.curToken}
+	array := &ast.ArrayLiteral{Token: p.curToken} //nolint:exhaustruct
 	array.Elements = p.parseExpressionList(token.RBRACKET)
 	return array
 }
@@ -157,7 +157,7 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
-	program := &ast.Program{}
+	program := &ast.Program{} //nolint:exhaustruct
 	program.Statements = []ast.Statement{}
 
 	for p.curToken.Type != token.EOF {
@@ -181,7 +181,7 @@ func (p *Parser) parseStatement() ast.Statement {
 }
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
-	stmt := &ast.ReturnStatement{Token: p.curToken}
+	stmt := &ast.ReturnStatement{Token: p.curToken} //nolint:exhaustruct
 	p.nextToken()
 
 	stmt.ReturnValue = p.parseExpression(LOWEST)
@@ -193,7 +193,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
-	stmt := &ast.LetStatement{Token: p.curToken}
+	stmt := &ast.LetStatement{Token: p.curToken} //nolint:exhaustruct
 
 	if !p.expectPeek(token.IDENT) {
 		return nil
@@ -216,7 +216,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt := &ast.ExpressionStatement{Token: p.curToken} //nolint:exhaustruct
 	stmt.Expression = p.parseExpression(LOWEST)
 
 	if p.peekTokenIs(token.SEMICOLON) {

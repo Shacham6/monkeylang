@@ -27,8 +27,12 @@ func New() *Compiler {
 		instructions: code.Instructions{},
 		constants:    []object.Object{},
 
-		lastInstruction: EmittedInstruction{},
-		prevInstruction: EmittedInstruction{},
+		lastInstruction: EmittedInstruction{}, //nolint:exhaustruct
+		prevInstruction: EmittedInstruction{}, //nolint:exhaustruct
+
+		symbolTable: NewSymbolTable(),
+	}
+}
 
 		symbolTable: NewSymbolTable(),
 	}

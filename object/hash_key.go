@@ -21,7 +21,7 @@ func NewHashKey(objectType ObjectType, value uint64) HashKey {
 }
 
 func ZeroHashKey() HashKey {
-	return HashKey{}
+	return HashKey{} //nolint:exhaustruct
 }
 
 func (h HashKey) Value() uint64 {
