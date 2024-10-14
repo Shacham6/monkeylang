@@ -12,6 +12,14 @@ const (
 	GlobalsSize = 65536
 )
 
+func InitGlobalsArray() []object.Object {
+	return make([]object.Object, GlobalsSize)
+}
+
+func InitStackArray() []object.Object {
+	return make([]object.Object, StackSize)
+}
+
 var (
 	constTrue  = &object.Boolean{Value: true}
 	constFalse = &object.Boolean{Value: false}
@@ -31,14 +39,18 @@ type VM struct {
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
-	stack := make([]object.Object, StackSize)
-	sp := 0
-	globals := make([]object.Object, GlobalsSize)
+	return NewWithGlobalState(
+		bytecode,
+		InitGlobalsArray(),
+	)
+}
 
+func NewWithGlobalState(bytecode *compiler.Bytecode, globals []object.Object) *VM {
+	sp := 0
 	return &VM{
 		bytecode.Constants,
 		bytecode.Instructions,
-		stack,
+		InitStackArray(),
 		sp,
 		globals,
 	}

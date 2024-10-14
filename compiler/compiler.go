@@ -46,7 +46,7 @@ func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
 		lastInstruction: ZeroEmittedInstruction(),
 		prevInstruction: ZeroEmittedInstruction(),
 
-		symbolTable: NewSymbolTable(),
+		symbolTable: s,
 	}
 }
 

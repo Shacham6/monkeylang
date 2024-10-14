@@ -52,6 +52,10 @@ func StartCompiled(in io.Reader, out io.Writer) {
 
 	macroEnv := object.NewEnvironment()
 
+	constants := []object.Object{}
+	globals := vm.InitGlobalsArray()
+	symbolTable := compiler.NewSymbolTable()
+
 	for {
 		fmt.Fprintf(out, "%s", PROMPT)
 		scanned := scanner.Scan()
@@ -72,14 +76,16 @@ func StartCompiled(in io.Reader, out io.Writer) {
 		evaluator.DefineMacros(program, macroEnv)
 		expanded := evaluator.ExpandMacros(program, macroEnv)
 
-		comp := compiler.New()
+		// comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 
 		if err := comp.Compile(expanded); err != nil {
 			fmt.Fprintf(out, "Oops! Compilation failed:\n\t%s\n", err)
 			continue
 		}
 
-		machine := vm.New(comp.Bytecode())
+		machine := vm.NewWithGlobalState(comp.Bytecode(), globals)
+		// machine := vm.New(comp.Bytecode())
 		if err := machine.Run(); err != nil {
 			fmt.Fprintf(out, "Executing bytecode failed:\n\t%s\n", err)
 			continue
