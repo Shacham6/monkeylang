@@ -12,6 +12,10 @@ type EmittedInstruction struct {
 	Position int
 }
 
+func ZeroEmittedInstruction() EmittedInstruction {
+	return EmittedInstruction{} //nolint:exhaustruct
+}
+
 type Compiler struct {
 	instructions code.Instructions
 	constants    []object.Object
@@ -27,8 +31,8 @@ func New() *Compiler {
 		instructions: code.Instructions{},
 		constants:    []object.Object{},
 
-		lastInstruction: EmittedInstruction{}, //nolint:exhaustruct
-		prevInstruction: EmittedInstruction{}, //nolint:exhaustruct
+		lastInstruction: ZeroEmittedInstruction(),
+		prevInstruction: ZeroEmittedInstruction(),
 
 		symbolTable: NewSymbolTable(),
 	}
@@ -39,8 +43,8 @@ func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
 		instructions: code.Instructions{},
 		constants:    constants,
 
-		lastInstruction: EmittedInstruction{}, //nolint:exhaustruct
-		prevInstruction: EmittedInstruction{}, //nolint:exhaustruct
+		lastInstruction: ZeroEmittedInstruction(),
+		prevInstruction: ZeroEmittedInstruction(),
 
 		symbolTable: NewSymbolTable(),
 	}
