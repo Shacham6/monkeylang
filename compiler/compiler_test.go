@@ -408,6 +408,14 @@ func testConstants(expected []any, actual []object.Object) error {
 			if err := testIntegerObject(int64(constant), actual[i]); err != nil {
 				return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
 			}
+			return nil
+
+		case string:
+			if err := testStringObject(constant, actual[i]); err != nil {
+				return fmt.Errorf("constant %d - testStringObject failed: %s", i, err)
+			}
+		default:
+			return fmt.Errorf("constant of type %T not supported", constant)
 		}
 	}
 
@@ -422,6 +430,19 @@ func testIntegerObject(expected int64, actual object.Object) error {
 
 	if result.Value != expected {
 		return fmt.Errorf("object has wrong value. got = %d, want = %d", result.Value, expected)
+	}
+
+	return nil
+}
+
+func testStringObject(expected string, actual object.Object) error {
+	result, ok := actual.(*object.String)
+	if !ok {
+		return fmt.Errorf("object is not String. got = %T (%+v)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. got = %s, want = %s", result.Value, expected)
 	}
 
 	return nil
