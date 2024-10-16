@@ -293,8 +293,14 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 		return vm.executeBinaryIntegerOperation(op, left, right)
 	}
 
+	def, err := code.Lookup(byte(op))
+	if err != nil {
+		panic(fmt.Sprintf("failed finding definition of the opcode: %s", err))
+	}
+
 	return fmt.Errorf(
-		"unsupported types for binary operations: %s %s",
+		"unsupported types for binary (%s) operations: %s %s",
+		def.Name,
 		leftType,
 		rightType,
 	)
