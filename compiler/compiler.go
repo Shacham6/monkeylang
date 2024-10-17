@@ -128,6 +128,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpConstant, c.addConstant(str))
 		return nil
 
+	case *ast.ArrayLiteral:
+		for _, el := range node.Elements {
+			if err := c.Compile(el); err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpArray, len(node.Elements))
+		return nil
+
 	case *ast.PrefixExpression:
 		if err := c.Compile(node.Right); err != nil {
 			return err
