@@ -174,6 +174,17 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpArray:
+			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			array := vm.buildArray(vm.sp-numElements, vm.sp)
+			vm.sp = vm.sp - numElements
+
+			if err := vm.push(array); err != nil {
+				return err
+			}
+
 		default:
 			rawCode := vm.instructions[ip]
 			definition, err := code.Lookup(rawCode)
@@ -231,6 +242,19 @@ func (vm *VM) executeComparison(op code.Opcode) error {
 	default:
 		return fmt.Errorf("unknown operator: %d (%s %s)", op, left.Type(), right.Type())
 	}
+}
+
+func (vm *VM) buildArray(startIndex int, endIndex int) object.Object {
+	elements := make([]object.Object, endIndex-startIndex)
+
+	// I guess this means that the values must be arranged in memory.
+	// ...And from what I've seen that's indeed the case? Yeah I think
+	// so...
+	for i := startIndex; i < endIndex; i++ {
+		elements[i-startIndex] = vm.stack[i]
+	}
+
+	return &object.Array{Elements: elements}
 }
 
 func (vm *VM) executeIntegerComparison(

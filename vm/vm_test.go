@@ -94,3 +94,11 @@ func TestStringExpressions(t *testing.T) {
 		vmtest.New(`"mon" + "key" + "banana"`, "monkeybanana"),
 	})
 }
+
+func TestArrayExpressions(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New("[]", []int{}),
+		vmtest.New("[1, 2, 3]", []int{1, 2, 3}),
+		vmtest.New("[1 + 2, 3 * 4, 5 + 6]", []int{3, 12, 11}),
+	})
+}

@@ -98,9 +98,51 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 			t.Fatalf("testNilObject failed: %s", err)
 		}
 
+	case []int:
+		array, ok := actual.(*object.Array)
+		if !ok {
+			t.Fatalf("actual is not *object.Array, got = %T", actual)
+		}
+
+		if len(array.Elements) != len(expected) {
+			t.Errorf("wrong num of elements in array, want = %d, got = %d",
+				len(expected),
+				len(array.Elements))
+		}
+
+		for i := 0; i < max(len(array.Elements), len(expected)); i++ {
+			actualVal, gotActual := getSafe(array.Elements, i)
+			expectedVal, gotExpected := getSafe(expected, i)
+
+			if gotActual != gotExpected {
+				t.Errorf(
+					"mismatched num of elements in expected and actual array,\n expected[%d] = %t, got[%d] = %t",
+					i, gotExpected, i, gotActual)
+				continue
+			}
+
+			testExpectedObject(t, expectedVal, actualVal)
+		}
+
 	default:
 		t.Fatalf("expectation of type %T is not supported yet", expected)
 	}
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+func getSafe[T any](slice []T, n int) (result T, ok bool) {
+	if n >= len(slice) {
+		ok = false
+		return
+	}
+	return slice[n], true
 }
 
 type VmTestCase struct {
