@@ -293,6 +293,10 @@ func (vm *VM) executeBinaryOperation(op code.Opcode) error {
 		return vm.executeBinaryIntegerOperation(op, left, right)
 	}
 
+	if leftType == object.STRING_OBJ && rightType == object.STRING_OBJ {
+		return vm.executeBinaryStringOperation(op, left, right)
+	}
+
 	def, err := code.Lookup(byte(op))
 	if err != nil {
 		panic(fmt.Sprintf("failed finding definition of the opcode: %s", err))
@@ -339,6 +343,23 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left object.Object, 
 	}
 
 	return nil
+}
+
+func (vm *VM) executeBinaryStringOperation(op code.Opcode, left object.Object, right object.Object) error {
+	leftValue := left.(*object.String).Value
+	rightValue := right.(*object.String).Value
+
+	switch op {
+	case code.OpAdd:
+		return vm.push(&object.String{Value: fmt.Sprintf("%s%s", leftValue, rightValue)})
+
+	default:
+		def, err := code.Lookup(byte(op))
+		if err != nil {
+			panic(fmt.Sprintf("opcode %q is not recognized: %s", byte(op), err))
+		}
+		return fmt.Errorf("binary operator %s not supported for strings", def.Name)
+	}
 }
 
 func (vm *VM) push(o object.Object) error {

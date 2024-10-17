@@ -86,3 +86,11 @@ func TestGlobalLetStatements(t *testing.T) {
 		vmtest.New("let a = 1; let b = a + a; a + b", 3),
 	})
 }
+
+func TestStringExpressions(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New(`"lol"`, "lol"),
+		vmtest.New(`"mon" + "key"`, "monkey"),
+		vmtest.New(`"mon" + "key" + "banana"`, "monkeybanana"),
+	})
+}
