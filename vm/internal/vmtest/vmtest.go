@@ -47,6 +47,19 @@ func testBooleanObject(expected bool, actual object.Object) error {
 	return nil
 }
 
+func testStringObject(expected string, actual object.Object) error {
+	result, ok := actual.(*object.String)
+	if !ok {
+		return fmt.Errorf("object is not *object.String. got = %T (%+V)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("result has wrong value. got = %q, want = %q", actual, expected)
+	}
+
+	return nil
+}
+
 func testNilObject(actual object.Object) error {
 	_, ok := actual.(*object.Null)
 	if ok {
@@ -73,6 +86,11 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	case bool:
 		if err := testBooleanObject(expected, actual); err != nil {
 			t.Fatalf("testBooleanObject failed: %s", err)
+		}
+
+	case string:
+		if err := testStringObject(expected, actual); err != nil {
+			t.Fatalf("testStringObject failed: %s", err)
 		}
 
 	case nil:
