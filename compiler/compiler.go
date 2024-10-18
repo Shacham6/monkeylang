@@ -1,10 +1,12 @@
 package compiler
 
 import (
+	"cmp"
 	"fmt"
 	"monkey/ast"
 	"monkey/code"
 	"monkey/object"
+	"slices"
 )
 
 type EmittedInstruction struct {
@@ -138,6 +140,30 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpArray, len(node.Elements))
 		return nil
 
+	case *ast.HashLiteral:
+		// Go makes no guarantees regarding the order of the keys in maps,
+		// we need to sort the keys in order to emit consistent bytecode.
+		pairs := node.Pairs()
+		keys := getKeys(pairs)
+		slices.SortFunc(keys, func(a, b ast.Expression) int {
+			return cmp.Compare(a.String(), b.String())
+		})
+
+		for _, key := range keys {
+			value := pairs[key]
+
+			if err := c.Compile(key); err != nil {
+				return err
+			}
+
+			if err := c.Compile(value); err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpHash, len(node.Pairs())*2)
+		return nil
+
 	case *ast.PrefixExpression:
 		if err := c.Compile(node.Right); err != nil {
 			return err
@@ -228,6 +254,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 	default:
 		panic(fmt.Sprintf("don't support node of type %T", node))
 	}
+}
+
+func getKeys[K comparable, V any](m map[K]V) []K {
+	keys := []K{}
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func (c *Compiler) Bytecode() *Bytecode {
