@@ -128,7 +128,7 @@ func TestHashLiterals(t *testing.T) {
 }
 
 func objInteger(val int) *object.Integer {
-	return &object.Integer{Value: 1}
+	return &object.Integer{Value: int64(val)}
 }
 
 func mustHash(t *testing.T, obj object.Object) object.HashKey {

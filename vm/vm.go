@@ -185,6 +185,34 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpHash:
+			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			hashmap := map[object.HashKey]object.HashPair{}
+			for index := vm.sp - numElements; index < vm.sp; index += 2 {
+				key := vm.stack[index]
+
+				// postpone user error handling for a moment
+				hashkey, err := key.HashKey()
+				if err != nil {
+					return fmt.Errorf("type is unusable as a hash key: %s", key.Type())
+				}
+
+				value := vm.stack[index+1]
+
+				hashmap[hashkey] = object.HashPair{
+					Key:   key,
+					Value: value,
+				}
+			}
+
+			vm.sp = vm.sp - numElements
+
+			if err := vm.push(&object.Hash{Pairs: hashmap}); err != nil {
+				return err
+			}
+
 		default:
 			rawCode := vm.instructions[ip]
 			definition, err := code.Lookup(rawCode)

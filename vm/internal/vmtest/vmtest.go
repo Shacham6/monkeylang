@@ -124,6 +124,40 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 			testExpectedObject(t, expectedVal, actualVal)
 		}
 
+	case map[object.HashKey]int64:
+		hash, ok := actual.(*object.Hash)
+		if !ok {
+			t.Fatalf("actual is not *object.Hash, got = %T", actual)
+		}
+
+		if len(hash.Pairs) != len(expected) {
+			t.Errorf("lengths are not equal, got = %d, expected = %d", len(hash.Pairs), len(expected))
+		}
+
+		// merge the keys into a single token "map", it will act as an intersection set
+		// of all the keys.
+		allKeys := map[object.HashKey]struct{}{}
+		for key := range expected {
+			allKeys[key] = struct{}{}
+		}
+		for key := range hash.Pairs {
+			allKeys[key] = struct{}{}
+		}
+
+		// perform the checks using ALL the found keys
+		for key := range allKeys {
+			expectedValue, gotExpected := expected[key]
+			actualValue, gotActual := hash.Pairs[key]
+
+			if gotExpected != gotActual {
+				t.Errorf("got key %v in one set but not in the other, exists in expected = %t, exists in actual = %t",
+					key, gotExpected, gotActual)
+				continue
+			}
+
+			testExpectedObject(t, expectedValue, actualValue.Value)
+		}
+
 	default:
 		t.Fatalf("expectation of type %T is not supported yet", expected)
 	}
