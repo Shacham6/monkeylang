@@ -1,6 +1,7 @@
 package vm_test
 
 import (
+	"monkey/object"
 	"monkey/vm/internal/vmtest"
 	"testing"
 )
@@ -101,4 +102,39 @@ func TestArrayExpressions(t *testing.T) {
 		vmtest.New("[1, 2, 3]", []int{1, 2, 3}),
 		vmtest.New("[1 + 2, 3 * 4, 5 + 6]", []int{3, 12, 11}),
 	})
+}
+
+func TestHashLiterals(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New(
+			"{}",
+			map[object.HashKey]int64{},
+		),
+		vmtest.New(
+			"{1: 2, 2: 3}",
+			map[object.HashKey]int64{
+				mustHash(t, objInteger(1)): 2,
+				mustHash(t, objInteger(2)): 3,
+			},
+		),
+		vmtest.New(
+			"{1 + 1: 2 * 2, 3 + 3: 4 * 4}",
+			map[object.HashKey]int64{
+				mustHash(t, objInteger(2)): 4,
+				mustHash(t, objInteger(6)): 16,
+			},
+		),
+	})
+}
+
+func objInteger(val int) *object.Integer {
+	return &object.Integer{Value: 1}
+}
+
+func mustHash(t *testing.T, obj object.Object) object.HashKey {
+	hash, err := obj.HashKey()
+	if err != nil {
+		t.Fatalf("obj is not hashable: %q", err)
+	}
+	return hash
 }
