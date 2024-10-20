@@ -6,6 +6,18 @@ import (
 	"testing"
 )
 
+func objInteger(val int) *object.Integer {
+	return &object.Integer{Value: int64(val)}
+}
+
+func mustHash(t *testing.T, obj object.Object) object.HashKey {
+	hash, err := obj.HashKey()
+	if err != nil {
+		t.Fatalf("obj is not hashable: %q", err)
+	}
+	return hash
+}
+
 func TestIntegerArithmetic(t *testing.T) {
 	vmtest.RunVmTests(t, []vmtest.VmTestCase{
 		vmtest.New("1", 1),
@@ -125,16 +137,4 @@ func TestHashLiterals(t *testing.T) {
 			},
 		),
 	})
-}
-
-func objInteger(val int) *object.Integer {
-	return &object.Integer{Value: int64(val)}
-}
-
-func mustHash(t *testing.T, obj object.Object) object.HashKey {
-	hash, err := obj.HashKey()
-	if err != nil {
-		t.Fatalf("obj is not hashable: %q", err)
-	}
-	return hash
 }
