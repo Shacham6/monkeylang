@@ -69,6 +69,10 @@ func (f *Function) Deval() (ast.Node, error) {
 	return nil, newDevalForTypeNotSupportedError(f)
 }
 
+func (cf *CompiledFunction) Deval() (ast.Node, error) {
+	return nil, newDevalForTypeNotSupportedError(cf)
+}
+
 func (r *ReturnValue) Deval() (ast.Node, error) {
 	return nil, newDevalForTypeNotSupportedError(r)
 }

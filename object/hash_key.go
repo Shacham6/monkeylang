@@ -62,12 +62,6 @@ func (s *String) HashKey() (HashKey, error) {
 	return NewHashKey(s.Type(), h.Sum64()), nil
 }
 
-// func newTypeNotHashableError(obj Object) *Error {
-// 	return &Error{
-// 		Message: fmt.Sprintf("object of type '%T' is not hashable", obj.Type()),
-// 	}
-// }
-
 func newTypeNotHashableError(obj Object) error {
 	return fmt.Errorf("object of type '%T' is not hashable", obj.Type())
 }
@@ -85,6 +79,10 @@ func (n *Null) HashKey() (HashKey, error) {
 }
 
 func (f *Function) HashKey() (HashKey, error) {
+	return ZeroHashKey(), newTypeNotHashableError(f)
+}
+
+func (f *CompiledFunction) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(f)
 }
 
