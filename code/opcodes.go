@@ -23,6 +23,7 @@ const (
 	OpSetGlobal
 	OpArray
 	OpHash
+	OpIndex
 )
 
 var definitions = map[Opcode]*Definition{
@@ -46,6 +47,7 @@ var definitions = map[Opcode]*Definition{
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 	OpArray:         {"OpArray", []int{2}}, // operand here is 2 bytes wide, which gives us 65535 possible number of elements
 	OpHash:          {"OpHash", []int{2}},  // operand here is 2 bytes wide, which gives us 65535 possible number of elements
+	OpIndex:         {"OpIndex", []int{}},
 }
 
 type Definition struct {
