@@ -138,3 +138,24 @@ func TestHashLiterals(t *testing.T) {
 		),
 	})
 }
+
+func TestIndexExpressions(t *testing.T) {
+	// I've removed some cases I considered problematic.
+	// Problematic in the "I disagree with the language design pretty heavily here"
+	// way and so I don't wanna do it. Specifically regarding out-of-bounds tolerance.
+	//
+	// Here are the cases I've removed:
+	//     vmtest.New("[][0]", nil),
+	//     vmtest.New("[1, 2, 3, 4][888]", nil),
+	//     vmtest.New(`{}["hello"]`, nil),
+
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New("[0][0]", 0),
+		vmtest.New("[0, 1][0 + 1]", 1),
+		vmtest.New("[0, 1, 2, 3, 4][1 + 2]", 3),
+		vmtest.New("[[1, 2]][0]", []int{1, 2}),
+		vmtest.New(`{"hello": "world"}["hello"]`, "world"),
+		vmtest.New(`{"hel" + "lo": "world"}["hello"]`, "world"),
+		vmtest.New(`{"hello": "wor" + "ld"}["hello"]`, "world"),
+	})
+}
