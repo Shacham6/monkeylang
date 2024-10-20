@@ -213,6 +213,22 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpIndex:
+			index := vm.pop()
+			collection := vm.pop()
+
+			switch collection := collection.(type) {
+			case *object.Hash:
+				if err := vm.executeHashIndexOperator(collection, index); err != nil {
+					return err
+				}
+
+			case *object.Array:
+				if err := vm.executeArrayIndexOperator(collection, index); err != nil {
+					return err
+				}
+			}
+
 		default:
 			rawCode := vm.instructions[ip]
 			definition, err := code.Lookup(rawCode)
@@ -283,6 +299,25 @@ func (vm *VM) buildArray(startIndex int, endIndex int) object.Object {
 	}
 
 	return &object.Array{Elements: elements}
+}
+
+func (vm *VM) executeHashIndexOperator(hash *object.Hash, index object.Object) error {
+	// Hashing and stuff's reserved to the hashmap type.
+	hashKey, err := index.HashKey()
+	if err != nil {
+		return fmt.Errorf("object %s is not hashable: %s", index.Type(), err)
+	}
+
+	if err := vm.push(hash.Pairs[hashKey].Value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (vm *VM) executeArrayIndexOperator(array *object.Array, index object.Object) error {
+	indexValue := index.(*object.Integer).Value
+	return vm.push(array.Elements[indexValue])
 }
 
 func (vm *VM) executeIntegerComparison(
