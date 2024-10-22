@@ -540,6 +540,48 @@ func TestFunctions(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
+func TestFunctionCalls(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: "fn() { 24 }()",
+			expectedConstants: []any{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			let f = fn() { 24 }
+			f()
+			`,
+			expectedConstants: []any{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0), // no OpPop afterwards!
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTests(t, tests)
+}
+
 func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 

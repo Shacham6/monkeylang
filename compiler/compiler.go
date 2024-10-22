@@ -291,6 +291,15 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		return nil
 
+	case *ast.CallExpression:
+		if err := c.Compile(node.Function()); err != nil {
+			return err
+		}
+
+		c.emit(code.OpCall)
+
+		return nil
+
 	case *ast.ReturnStatement:
 		if err := c.Compile(node.ReturnValue); err != nil {
 			return err
