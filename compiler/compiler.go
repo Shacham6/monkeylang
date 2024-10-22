@@ -19,37 +19,34 @@ func ZeroEmittedInstruction() EmittedInstruction {
 }
 
 type Compiler struct {
-	instructions code.Instructions
-	constants    []object.Object
-
-	lastInstruction EmittedInstruction
-	prevInstruction EmittedInstruction
+	constants []object.Object
 
 	symbolTable *SymbolTable
+
+	scopes     []CompilationScope
+	scopeIndex int
 }
 
 func New() *Compiler {
-	return &Compiler{
-		instructions: code.Instructions{},
-		constants:    []object.Object{},
-
-		lastInstruction: ZeroEmittedInstruction(),
-		prevInstruction: ZeroEmittedInstruction(),
-
-		symbolTable: NewSymbolTable(),
-	}
+	constants := []object.Object{}
+	return NewWithState(NewSymbolTable(), constants)
 }
 
 func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
-	return &Compiler{
-		instructions: code.Instructions{},
-		constants:    constants,
+	mainScope := NewCompilationScope()
 
-		lastInstruction: ZeroEmittedInstruction(),
-		prevInstruction: ZeroEmittedInstruction(),
+	return &Compiler{
+		constants: constants,
 
 		symbolTable: s,
+
+		scopes:     []CompilationScope{mainScope},
+		scopeIndex: 0,
 	}
+}
+
+func (c *Compiler) scope() *CompilationScope {
+	return &c.scopes[c.scopeIndex]
 }
 
 func (c *Compiler) Compile(node ast.Node) error {
@@ -190,16 +187,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		if c.lastInstruction.Opcode == code.OpPop {
-			c.removeLastInstruction()
+		if c.scope().LastInstructionIs(code.OpPop) {
+			c.scope().RemoveLastInstruction()
 		}
 
 		// Emit the opcode with a bogus offset
 		jumpInstructionPos := c.emit(code.OpJump, 9999)
 
-		c.changeOperand(
+		c.scope().ChangeOperand(
 			jumpNotTruthyInstuctionPos,
-			len(c.instructions),
+			len(c.scope().Instructions),
 		)
 
 		alt, hasAlt := node.Alternative()
@@ -210,13 +207,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 
-			if c.lastInstruction.Opcode == code.OpPop {
-				c.removeLastInstruction()
+			if c.scope().LastInstructionIs(code.OpPop) {
+				c.scope().RemoveLastInstruction()
 			}
 		}
-		c.changeOperand(
+		c.scope().ChangeOperand(
 			jumpInstructionPos,
-			len(c.instructions),
+			len(c.scope().Instructions),
 		)
 
 		return nil
@@ -263,22 +260,52 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpIndex)
 		return nil
 
+	case *ast.FunctionLiteral:
+		// ========== ENTER FUNCTION SCOPE ==========
+
+		c.enterScope()
+
+		if err := c.Compile(node.Body()); err != nil {
+			return err
+		}
+
+		// This is that all "the last expression in the function is the return value"
+		if c.scope().LastInstructionIs(code.OpPop) {
+			c.scope().ReplaceInstruction(
+				c.scope().LastInstruction.Position,
+				code.Make(code.OpReturnValue),
+			)
+		}
+
+		if !c.scope().LastInstructionIs(code.OpReturnValue) {
+			c.emit(code.OpReturn)
+		}
+
+		instructions := c.leaveScope()
+
+		// ========== LEAVING FUNCTION SCOPE ==========
+
+		compiledFn := &object.CompiledFunction{Instructions: instructions}
+
+		c.emit(code.OpConstant, c.addConstant(compiledFn))
+
+		return nil
+
+	case *ast.ReturnStatement:
+		if err := c.Compile(node.ReturnValue); err != nil {
+			return err
+		}
+		c.emit(code.OpReturnValue)
+		return nil
+
 	default:
 		panic(fmt.Sprintf("don't support node of type %T", node))
 	}
 }
 
-func getKeys[K comparable, V any](m map[K]V) []K {
-	keys := []K{}
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
 func (c *Compiler) Bytecode() *Bytecode {
 	return &Bytecode{
-		c.instructions,
+		c.scope().Instructions,
 		c.constants,
 	}
 }
@@ -289,47 +316,20 @@ func (c *Compiler) addConstant(obj object.Object) int {
 }
 
 func (c *Compiler) emit(op code.Opcode, operands ...int) int {
-	ins := code.Make(op, operands...)
-	pos := c.addInstruction(ins)
-	c.updateLastInstruction(op, pos)
-	return pos
+	return c.scope().Emit(op, operands...)
 }
 
-func (c *Compiler) updateLastInstruction(op code.Opcode, pos int) {
-	previous := c.lastInstruction
-	last := EmittedInstruction{
-		Opcode:   op,
-		Position: pos,
-	}
-	c.prevInstruction = previous
-	c.lastInstruction = last
+func (c *Compiler) enterScope() {
+	scope := NewCompilationScope()
+	c.scopes = append(c.scopes, scope)
+	c.scopeIndex++
 }
 
-func (c *Compiler) removeLastInstruction() {
-	c.instructions = c.instructions[:c.lastInstruction.Position]
-	c.lastInstruction = c.prevInstruction
-}
+func (c *Compiler) leaveScope() code.Instructions {
+	instructions := c.scope().Instructions
 
-// replaceInstruction replaces an instruction, defined at pos, with the newInstruction.
-//
-// Please be careful using this. Unless the instruction at pos and the new instruction
-// are of the same size, you are risking an overflow. Tread carefully.
-func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
-	for i := 0; i < len(newInstruction); i++ {
-		c.instructions[pos+i] = newInstruction[i]
-	}
-}
+	c.scopes = c.scopes[:len(c.scopes)-1]
+	c.scopeIndex--
 
-// changeOperand changes the operand of the instruction at opPos.
-func (c *Compiler) changeOperand(opPos int, operand int) {
-	op := code.Opcode(c.instructions[opPos])
-	newInstruction := code.Make(op, operand)
-
-	c.replaceInstruction(opPos, newInstruction)
-}
-
-func (c *Compiler) addInstruction(ins []byte) int {
-	posNewInstruction := len(c.instructions)
-	c.instructions = append(c.instructions, ins...)
-	return posNewInstruction
+	return instructions
 }
