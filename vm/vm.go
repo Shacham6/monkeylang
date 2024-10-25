@@ -10,6 +10,7 @@ import (
 const (
 	StackSize   = 2048
 	GlobalsSize = 65536
+	MaxFrames   = 1024
 )
 
 func InitGlobalsArray() []object.Object {
@@ -18,6 +19,10 @@ func InitGlobalsArray() []object.Object {
 
 func InitStackArray() []object.Object {
 	return make([]object.Object, StackSize)
+}
+
+func InitFramesArray() []*Frame {
+	return make([]*Frame, MaxFrames)
 }
 
 var (
@@ -33,9 +38,11 @@ type VM struct {
 
 	// mutating runtime things
 	stack []object.Object
-	sp    int // Always points to the next value. Top of stack is stack[sp-1]
+	sp    int // "stack pointer". Always points to the next value. Top of stack is stack[sp-1]
 
 	globals []object.Object
+
+	frameStack FramesStack
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
@@ -47,12 +54,21 @@ func New(bytecode *compiler.Bytecode) *VM {
 
 func NewWithGlobalState(bytecode *compiler.Bytecode, globals []object.Object) *VM {
 	sp := 0
+
+	framesStack := NewFramesStack(MaxFrames)
+
+	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
+	mainFrame := NewFrame(mainFn)
+
+	framesStack.Push(mainFrame)
+
 	return &VM{
 		bytecode.Constants,
 		bytecode.Instructions,
 		InitStackArray(),
 		sp,
 		globals,
+		framesStack,
 	}
 }
 
