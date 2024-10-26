@@ -5,6 +5,7 @@ import (
 	"monkey/code"
 	"monkey/compiler"
 	"monkey/object"
+	unsafestack "monkey/unsafe_stack"
 )
 
 const (
@@ -41,7 +42,7 @@ type VM struct {
 
 	globals []object.Object
 
-	frameStack FramesStack
+	frameStack unsafestack.UnsafeSizedStack[*Frame]
 }
 
 func New(bytecode *compiler.Bytecode) *VM {
@@ -54,7 +55,7 @@ func New(bytecode *compiler.Bytecode) *VM {
 func NewWithGlobalState(bytecode *compiler.Bytecode, globals []object.Object) *VM {
 	sp := 0
 
-	framesStack := NewFramesStack(MaxFrames)
+	framesStack := unsafestack.Make[*Frame](MaxFrames)
 
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
 	mainFrame := NewFrame(mainFn)
