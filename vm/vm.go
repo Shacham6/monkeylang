@@ -262,6 +262,13 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpReturn:
+			vm.frameStack.Pop()
+			vm.pop()
+			if err := vm.push(constNull); err != nil {
+				return err
+			}
+
 		default:
 			rawCode := ins[ip]
 			definition, err := code.Lookup(rawCode)

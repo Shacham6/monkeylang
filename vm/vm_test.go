@@ -186,5 +186,37 @@ func TestCallingFunctionsWithoutArguments(t *testing.T) {
 			`,
 			3,
 		),
+		vmtest.New(
+			`
+			let get_five = fn() { return 5; }
+			get_five()
+			`,
+			5,
+		),
+		vmtest.New(
+			`
+			let get = fn() {
+				if (true) { return 1; }
+				return 2;
+			}
+			get();
+			`,
+			1,
+		),
+		vmtest.New(
+			`
+			let f = fn() { }
+			f()
+			`,
+			nil,
+		),
+		vmtest.New(
+			`
+			let noReturn1 = fn() {};
+			let noReturn2 = fn() { noReturn1(); };
+			noReturn2();
+			`,
+			nil,
+		),
 	})
 }

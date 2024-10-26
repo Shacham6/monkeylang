@@ -12,13 +12,18 @@ import (
 	"monkey/object"
 	"monkey/parser"
 	"monkey/vm"
+	"strings"
 	"testing"
 )
 
-func parse(input string) *ast.Program {
+func parse(input string) (*ast.Program, error) {
 	l := lexer.New(input)
 	p := parser.New(l)
-	return p.ParseProgram()
+	prog := p.ParseProgram()
+	if len(p.Errors()) > 0 {
+		return nil, fmt.Errorf("got parsing errors: \n\t%s", strings.Join(p.Errors(), "\n\t"))
+	}
+	return prog, nil
 }
 
 func testIntegerObject(expected int64, actual object.Object) error {
@@ -193,10 +198,13 @@ func RunVmTests(t *testing.T, tests []VmTestCase) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			program := parse(tt.input)
+			program, err := parse(tt.input)
+			if err != nil {
+				t.Fatalf("failed parsing: %s", err)
+			}
 
 			comp := compiler.New()
-			err := comp.Compile(program)
+			err = comp.Compile(program)
 			if err != nil {
 				t.Fatalf("compiler error: %s", err)
 			}
