@@ -159,3 +159,14 @@ func TestIndexExpressions(t *testing.T) {
 		vmtest.New(`{"hello": "wor" + "ld"}["hello"]`, "world"),
 	})
 }
+
+func TestCallingFunctionsWithoutArguments(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New(`
+			let fivePlusTen = fn() {5 + 10;};
+			fivePlusTen();
+			`,
+			15,
+		),
+	})
+}

@@ -242,6 +242,25 @@ func (vm *VM) Run() error {
 				}
 			}
 
+		case code.OpCall:
+			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("calling a non-function")
+			}
+
+			vm.frameStack.Push(NewFrame(fn))
+
+		case code.OpReturnValue:
+			returnValue := vm.pop()
+
+			// two pops - one for the function frame, and one for the CALL that
+			// put us into the function to begin with.
+			vm.frameStack.Pop()
+			vm.pop()
+			if err := vm.push(returnValue); err != nil {
+				return err
+			}
+
 		default:
 			rawCode := ins[ip]
 			definition, err := code.Lookup(rawCode)
