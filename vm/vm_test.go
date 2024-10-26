@@ -218,5 +218,13 @@ func TestCallingFunctionsWithoutArguments(t *testing.T) {
 			`,
 			nil,
 		),
+		vmtest.New(
+			`
+			let retOne = fn() { 1; };
+			let retRetOne = fn() { retOne; };
+			retRetOne()();
+			`,
+			1,
+		),
 	})
 }
