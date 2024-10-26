@@ -27,6 +27,10 @@ func Make[T any](size int) UnsafeSizedStack[T] {
 	}
 }
 
+func (u *UnsafeSizedStack[T]) Current() T {
+	return u.items[u.topIndex]
+}
+
 func (u *UnsafeSizedStack[T]) Push(item T) {
 	u.items[u.topIndex+1] = item
 	u.topIndex++
