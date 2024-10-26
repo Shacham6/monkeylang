@@ -162,11 +162,29 @@ func TestIndexExpressions(t *testing.T) {
 
 func TestCallingFunctionsWithoutArguments(t *testing.T) {
 	vmtest.RunVmTests(t, []vmtest.VmTestCase{
-		vmtest.New(`
+		vmtest.New(
+			`
 			let fivePlusTen = fn() {5 + 10;};
 			fivePlusTen();
 			`,
 			15,
+		),
+		vmtest.New(
+			`
+			let one = fn() {1;};
+			let two = fn() {2;};
+			one() + two()
+			`,
+			3,
+		),
+		vmtest.New(
+			`
+			let a = fn() { 1 };
+			let b = fn() { a() + 1 };
+			let c = fn() { b() + 1 };
+			c()
+			`,
+			3,
 		),
 	})
 }

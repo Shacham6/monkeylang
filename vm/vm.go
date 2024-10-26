@@ -257,6 +257,7 @@ func (vm *VM) Run() error {
 			// put us into the function to begin with.
 			vm.frameStack.Pop()
 			vm.pop()
+
 			if err := vm.push(returnValue); err != nil {
 				return err
 			}
