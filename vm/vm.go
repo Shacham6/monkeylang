@@ -33,8 +33,7 @@ var (
 
 type VM struct {
 	// parts of the bytescode
-	constants    []object.Object
-	instructions code.Instructions
+	constants []object.Object
 
 	// mutating runtime things
 	stack []object.Object
@@ -64,7 +63,6 @@ func NewWithGlobalState(bytecode *compiler.Bytecode, globals []object.Object) *V
 
 	return &VM{
 		bytecode.Constants,
-		bytecode.Instructions,
 		InitStackArray(),
 		sp,
 		globals,
@@ -101,44 +99,42 @@ func (vm *VM) LastPoppedStackElem() object.Object {
 }
 
 func (vm *VM) Run() error {
-	for ip := 0; ip < len(vm.instructions); ip++ {
+	var ip int
+	var ins code.Instructions
+	var op code.Opcode
+
+	for vm.frameStack.Current().ip < len(vm.frameStack.Current().Instructions())-1 {
 		// we're on the *hot* path, this is the actual execution of the vm, thus
 		// we're not using `code.Lookup` since it'll slow things down for us.
-		op := code.Opcode(vm.instructions[ip])
+
+		vm.frameStack.Current().ip++
+		ip = vm.frameStack.Current().ip
+		ins = vm.frameStack.Current().Instructions()
+		op = code.Opcode(ins[ip])
 
 		switch op {
 		case code.OpConstant:
-			constIndex := code.ReadUint16(vm.instructions[ip+1:])
-			ip += 2
+			constIndex := code.ReadUint16(ins[ip+1:])
+			vm.frameStack.Current().ip += 2
 			if err := vm.push(vm.constants[constIndex]); err != nil {
 				return err
 			}
 
 		case code.OpJump:
-			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
-			ip = pos - 1
+			pos := int(code.ReadUint16(ins[ip+1:]))
+			vm.frameStack.Current().ip = pos - 1
 
 		case code.OpJumpNotTruthy:
-			// Note:
-			// I've implemented this myself, and the result is a different implementation
-			// then the book (page 104).
-			// In the book there seem to be a different order. The `pos` instruction is read
-			// first and `ip` is adjusted. This is regardless to the result of `obj`.
-			// BUT, even with this implementation, my tests pass. So I'm leaving these here
-			// and am waiting for weird shit to happen.
-
 			obj := vm.pop()
 			if objectBoolToNativeBool(obj) {
 				// We add by the width (in bytes) of the operands.
-
-				// Linting error disabled since I cannot for the life of me understand _why_ that's the case.
-				ip += 2 //nolint:ineffassign
+				vm.frameStack.Current().ip += 2
 
 				continue
 			}
 
-			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
-			ip = pos - 1
+			pos := int(code.ReadUint16(ins[ip+1:]))
+			vm.frameStack.Current().ip = pos - 1
 
 		case code.OpAdd, code.OpSub, code.OpDiv, code.OpMul:
 			if err := vm.executeBinaryOperation(op); err != nil {
@@ -179,20 +175,20 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpSetGlobal:
-			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
-			ip += 2
+			globalIndex := code.ReadUint16(ins[ip+1:])
+			vm.frameStack.Current().ip += 2
 			vm.globals[globalIndex] = vm.pop()
 
 		case code.OpGetGlobal:
-			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
-			ip += 2
+			globalIndex := code.ReadUint16(ins[ip+1:])
+			vm.frameStack.Current().ip += 2
 			if err := vm.push(vm.globals[globalIndex]); err != nil {
 				return err
 			}
 
 		case code.OpArray:
-			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
-			ip += 2
+			numElements := int(code.ReadUint16(ins[ip+1:]))
+			vm.frameStack.Current().ip += 2
 
 			array := vm.buildArray(vm.sp-numElements, vm.sp)
 			vm.sp = vm.sp - numElements
@@ -202,8 +198,8 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpHash:
-			numElements := int(code.ReadUint16(vm.instructions[ip+1:]))
-			ip += 2
+			numElements := int(code.ReadUint16(ins[ip+1:]))
+			vm.frameStack.Current().ip += 2
 
 			hashmap := map[object.HashKey]object.HashPair{}
 			for index := vm.sp - numElements; index < vm.sp; index += 2 {
@@ -246,7 +242,7 @@ func (vm *VM) Run() error {
 			}
 
 		default:
-			rawCode := vm.instructions[ip]
+			rawCode := ins[ip]
 			definition, err := code.Lookup(rawCode)
 			if err != nil {
 				// TODO: think if this flow makes sense; if does add test.
