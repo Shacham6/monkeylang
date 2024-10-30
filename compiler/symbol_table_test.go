@@ -6,19 +6,45 @@ func TestDefine(t *testing.T) {
 	expected := map[string]Symbol{
 		"a": NewSymbol("a", GlobalScope, 0),
 		"b": NewSymbol("b", GlobalScope, 1),
+		"c": NewSymbol("c", LocalScope, 0),
+		"d": NewSymbol("d", LocalScope, 1),
+		"e": NewSymbol("e", LocalScope, 0),
+		"f": NewSymbol("f", LocalScope, 1),
 	}
 
 	global := NewSymbolTable()
 
 	a := global.Define("a")
-	if a != expected["a"] {
-		t.Errorf("expected a = %+v, got = %+v", expected["a"], a)
-	}
+	expectSymbol(t, "a", a, expected["a"])
 
 	b := global.Define("b")
-	if b != expected["b"] {
-		t.Errorf("expected b = %+v, got = %+v", expected["b"], b)
+	expectSymbol(t, "b", b, expected["b"])
+
+	firstLocal := global.SpawnScoped()
+
+	c := firstLocal.Define("c")
+	expectSymbol(t, "c", c, expected["c"])
+
+	d := firstLocal.Define("d")
+	expectSymbol(t, "d", d, expected["d"])
+
+	secondLocal := firstLocal.SpawnScoped()
+
+	e := secondLocal.Define("e")
+	expectSymbol(t, "e", e, expected["e"])
+
+	f := secondLocal.Define("f")
+	expectSymbol(t, "f", f, expected["f"])
+}
+
+func expectSymbol(t *testing.T, name string, got Symbol, expected Symbol) {
+	t.Helper()
+
+	if got == expected {
+		return
 	}
+
+	t.Errorf("expected %s = %+v, got = %+v", name, expected, got)
 }
 
 func TestResolveGlobal(t *testing.T) {
@@ -41,6 +67,87 @@ func TestResolveGlobal(t *testing.T) {
 		if result != sym {
 			t.Errorf("expected %s to resolve to %+v, got %+v",
 				sym.Name, sym, result)
+		}
+	}
+}
+
+func TestResolveLocal(t *testing.T) {
+	global := NewSymbolTable()
+	global.Define("a")
+	global.Define("b")
+
+	local := global.SpawnScoped()
+	local.Define("c")
+	local.Define("d")
+
+	expected := []Symbol{
+		NewSymbol("a", GlobalScope, 0),
+		NewSymbol("b", GlobalScope, 1),
+		NewSymbol("c", LocalScope, 0),
+		NewSymbol("d", LocalScope, 1),
+	}
+
+	for _, sym := range expected {
+		result, ok := local.Resolve(sym.Name)
+		if !ok {
+			t.Errorf("name %s not resolvable", sym.Name)
+			continue
+		}
+
+		if result != sym {
+			t.Errorf("expected %s to resolve to %+v, got = %+v", sym.Name, sym, result)
+		}
+	}
+}
+
+func TestResolveNestedLocal(t *testing.T) {
+	global := NewSymbolTable()
+	global.Define("a")
+	global.Define("b")
+
+	firstLocal := global.SpawnScoped()
+	firstLocal.Define("c")
+	firstLocal.Define("d")
+
+	secondLocal := firstLocal.SpawnScoped()
+	secondLocal.Define("e")
+	secondLocal.Define("f")
+
+	tests := []struct {
+		table           *SymbolTable
+		expectedSymbols []Symbol
+	}{
+		{
+			firstLocal,
+			[]Symbol{
+				NewSymbol("a", GlobalScope, 0),
+				NewSymbol("b", GlobalScope, 1),
+				NewSymbol("c", LocalScope, 0),
+				NewSymbol("d", LocalScope, 1),
+			},
+		},
+		{
+			secondLocal,
+			[]Symbol{
+				NewSymbol("a", GlobalScope, 0),
+				NewSymbol("b", GlobalScope, 1),
+				NewSymbol("e", LocalScope, 0),
+				NewSymbol("f", LocalScope, 1),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		for _, sym := range tt.expectedSymbols {
+			result, ok := tt.table.Resolve(sym.Name)
+			if !ok {
+				t.Errorf("name %s not resolvable", sym.Name)
+				continue
+			}
+
+			if result != sym {
+				t.Errorf("expected %s to resolve to %+v, got = %+v", sym.Name, sym, result)
+			}
 		}
 	}
 }

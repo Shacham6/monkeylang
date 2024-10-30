@@ -237,15 +237,36 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable: %s", node.Value)
 		}
 
-		c.emit(code.OpGetGlobal, symbol.Index)
+		switch symbol.Scope {
+		case GlobalScope:
+			c.emit(code.OpGetGlobal, symbol.Index)
+		case LocalScope:
+			c.emit(code.OpGetLocal, symbol.Index)
+		default:
+			panic(fmt.Sprintf("symbol scope not supported: %+v", symbol.Scope))
+		}
+
 		return nil
 
 	case *ast.LetStatement:
 		if err := c.Compile(node.Value); err != nil {
 			return err
 		}
+
 		symbol := c.symbolTable.Define(node.Name.Value)
-		c.emit(code.OpSetGlobal, symbol.Index)
+
+		switch symbol.Scope {
+
+		case GlobalScope:
+			c.emit(code.OpSetGlobal, symbol.Index)
+
+		case LocalScope:
+			c.emit(code.OpSetLocal, symbol.Index)
+
+		default:
+			panic(fmt.Sprintf("symbol.Scope is not supported: %+v", symbol))
+		}
+
 		return nil
 
 	case *ast.IndexExpression:
@@ -274,6 +295,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.scope().ReplaceInstruction(
 				c.scope().LastInstruction.Position,
 				code.Make(code.OpReturnValue),
+			)
+			c.scope().UpdateLastInstruction(
+				code.OpReturnValue,
+				c.scope().LastInstruction.Position,
 			)
 		}
 
@@ -332,6 +357,7 @@ func (c *Compiler) enterScope() {
 	scope := NewCompilationScope()
 	c.scopes = append(c.scopes, scope)
 	c.scopeIndex++
+	c.symbolTable = c.symbolTable.SpawnScoped()
 }
 
 func (c *Compiler) leaveScope() code.Instructions {
@@ -339,6 +365,13 @@ func (c *Compiler) leaveScope() code.Instructions {
 
 	c.scopes = c.scopes[:len(c.scopes)-1]
 	c.scopeIndex--
+
+	parentScope, hasParentScope := c.symbolTable.parent()
+	if !hasParentScope {
+		panic(`trying to unwrap the symbol scope but has no inner one. ensure that 'leaveScope' is called only after 'enterScope'`)
+	}
+
+	c.symbolTable = parentScope
 
 	return instructions
 }
