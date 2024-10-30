@@ -33,6 +33,13 @@ func TestInstructionString(t *testing.T) {
 0004 OpConstant 3
 `,
 		},
+		{
+			instructions: []code.Instructions{
+				code.Make(code.OpGetLocal, 0),
+			},
+			expected: `0000 OpGetLocal 0
+`,
+		},
 	}
 
 	for index, tt := range tests {
