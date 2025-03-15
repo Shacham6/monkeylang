@@ -331,7 +331,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			}
 		}
 
-		c.emit(code.OpCall)
+		c.emit(code.OpCall, len(node.Arguments()))
 
 		return nil
 
