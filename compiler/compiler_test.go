@@ -597,6 +597,30 @@ func TestFunctionCalls(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input: `
+			let manyArg = fn(a, b, c) { };
+			manyArg(24, 25, 26);
+			`,
+			expectedConstants: []any{
+				[]code.Instructions{
+					code.Make(code.OpReturn),
+				},
+				24,
+				25,
+				26,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpCall, 3),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runCompilerTests(t, tests)
@@ -725,12 +749,12 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 	for i, ins := range concatted {
 		if actual[i] != ins {
 			return fmt.Errorf(
-				"wrong instruction at %d.\n want = %s (indexed = %q),\n got  = %s (indexed = %q)",
+				"wrong instruction at %d.\n want (indexed = %q) = ```\n%s\n``` ,\n got (indexed = %q) = ```\n%s\n``` ",
 				i,
-				concatted,
 				ins,
-				actual,
+				concatted,
 				actual[i],
+				actual,
 			)
 		}
 	}
