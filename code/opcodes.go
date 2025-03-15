@@ -53,7 +53,7 @@ var definitions = map[Opcode]*Definition{
 	OpArray:         {"OpArray", []int{2}}, // operand here is 2 bytes wide, which gives us 65535 possible number of elements
 	OpHash:          {"OpHash", []int{2}},  // operand here is 2 bytes wide, which gives us 65535 possible number of elements
 	OpIndex:         {"OpIndex", []int{}},
-	OpCall:          {"OpCall", []int{}},
+	OpCall:          {"OpCall", []int{1}},
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpReturn:        {"OpReturn", []int{}},
 	OpGetLocal:      {"OpGetLocal", []int{1}},

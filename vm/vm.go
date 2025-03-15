@@ -316,6 +316,8 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpCall:
+			vm.frameStack.Current().ip += 1
+
 			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
 			if !ok {
 				return toErr(fmt.Errorf("calling a non-function"))
