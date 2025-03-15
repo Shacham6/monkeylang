@@ -577,6 +577,26 @@ func TestFunctionCalls(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			input: `
+			let oneArg = fn(a) { };
+			oneArg(24);
+			`,
+			expectedConstants: []any{
+				[]code.Instructions{
+					code.Make(code.OpReturn),
+				},
+				24,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			},
+		},
 	}
 
 	runCompilerTests(t, tests)
@@ -696,7 +716,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 
 	if len(actual) != len(concatted) {
 		return fmt.Errorf(
-			"wrong instructions length.\n want = %q,\n got  = %q",
+			"wrong instructions length.\n want = ```\n%s\n```,\n got = ```\n%s\n```",
 			concatted,
 			actual,
 		)
@@ -705,7 +725,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 	for i, ins := range concatted {
 		if actual[i] != ins {
 			return fmt.Errorf(
-				"wrong instruction at %d.\n want = %q (indexed = %q),\n got  = %q (indexed = %q)",
+				"wrong instruction at %d.\n want = %s (indexed = %q),\n got  = %s (indexed = %q)",
 				i,
 				concatted,
 				ins,
