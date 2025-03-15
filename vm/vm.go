@@ -6,6 +6,7 @@ import (
 	"monkey/compiler"
 	"monkey/object"
 	unsafestack "monkey/unsafe_stack"
+	"strings"
 )
 
 const (
@@ -58,7 +59,7 @@ func NewWithGlobalState(bytecode *compiler.Bytecode, globals []object.Object) *V
 	framesStack := unsafestack.Make[*Frame](MaxFrames)
 
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 
 	framesStack.Push(mainFrame)
 
@@ -99,10 +100,65 @@ func (vm *VM) LastPoppedStackElem() object.Object {
 	return vm.stack[vm.sp]
 }
 
+type VmRunError struct {
+	err          error
+	instructions code.Instructions
+
+	stack        []object.Object
+	globals      []object.Object
+	stackPointer int // "stack pointer". Always points to the next value. Top of stack is stack[sp-1]
+}
+
+func (e *VmRunError) Error() string {
+	lines := []string{}
+	lines = append(lines, fmt.Sprintf("Got runtime error: %s", e.err))
+
+	globalsLines := []string{"Globals:"}
+	for idx, g := range e.globals {
+		if g == nil {
+			continue
+		}
+		globalsLines = append(globalsLines, fmt.Sprintf("[%04d] %s", idx, g.Inspect()))
+	}
+	globalsString := strings.Join(globalsLines, "\n")
+	lines = append(lines, globalsString)
+
+	stackLines := []string{"Stack:"}
+	for idx, so := range e.stack {
+		if so == nil {
+			continue
+		}
+
+		var pointer string
+		if idx == e.stackPointer {
+			pointer = "<-------"
+		} else {
+			pointer = ""
+		}
+
+		stackLines = append(stackLines, fmt.Sprintf("[%04d] %s %s", idx, so.Inspect(), pointer))
+	}
+	stackString := strings.Join(stackLines, "\n")
+	lines = append(lines, stackString)
+
+	runtimeDump := fmt.Sprintf(
+		"Runtime Dump:\n%s",
+		e.instructions.String(),
+	)
+
+	lines = append(lines, runtimeDump)
+
+	return strings.Join(lines, "\n=====================\n")
+}
+
 func (vm *VM) Run() error {
 	var ip int
 	var ins code.Instructions
 	var op code.Opcode
+
+	toErr := func(err error) error {
+		return &VmRunError{err, ins, vm.stack, vm.globals, vm.sp}
+	}
 
 	for vm.frameStack.Current().ip < len(vm.frameStack.Current().Instructions())-1 {
 		// we're on the *hot* path, this is the actual execution of the vm, thus
@@ -118,7 +174,7 @@ func (vm *VM) Run() error {
 			constIndex := code.ReadUint16(ins[ip+1:])
 			vm.frameStack.Current().ip += 2
 			if err := vm.push(vm.constants[constIndex]); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpJump:
@@ -139,7 +195,7 @@ func (vm *VM) Run() error {
 
 		case code.OpAdd, code.OpSub, code.OpDiv, code.OpMul:
 			if err := vm.executeBinaryOperation(op); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpPop:
@@ -147,32 +203,32 @@ func (vm *VM) Run() error {
 
 		case code.OpTrue:
 			if err := vm.push(constTrue); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpFalse:
 			if err := vm.push(constFalse); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpNull:
 			if err := vm.push(constNull); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			if err := vm.executeComparison(op); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpBang:
 			if err := vm.executeBangOperator(); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpMinus:
 			if err := vm.executeMinusOperator(); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpSetGlobal:
@@ -184,7 +240,24 @@ func (vm *VM) Run() error {
 			globalIndex := code.ReadUint16(ins[ip+1:])
 			vm.frameStack.Current().ip += 2
 			if err := vm.push(vm.globals[globalIndex]); err != nil {
-				return err
+				return toErr(err)
+			}
+
+		case code.OpSetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.frameStack.Current().ip += 1
+
+			frame := vm.frameStack.Current()
+			vm.stack[frame.basePointer+int(localIndex)] = vm.pop()
+
+		case code.OpGetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.frameStack.Current().ip += 1
+
+			currentFrame := vm.frameStack.Current()
+			local := vm.stack[currentFrame.basePointer+int(localIndex)]
+			if err := vm.push(local); err != nil {
+				return toErr(err)
 			}
 
 		case code.OpArray:
@@ -195,7 +268,7 @@ func (vm *VM) Run() error {
 			vm.sp = vm.sp - numElements
 
 			if err := vm.push(array); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpHash:
@@ -209,7 +282,7 @@ func (vm *VM) Run() error {
 				// postpone user error handling for a moment
 				hashkey, err := key.HashKey()
 				if err != nil {
-					return fmt.Errorf("type is unusable as a hash key: %s", key.Type())
+					return toErr(fmt.Errorf("type is unusable as a hash key: %s", key.Type()))
 				}
 
 				value := vm.stack[index+1]
@@ -223,7 +296,7 @@ func (vm *VM) Run() error {
 			vm.sp = vm.sp - numElements
 
 			if err := vm.push(&object.Hash{Pairs: hashmap}); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpIndex:
@@ -233,40 +306,42 @@ func (vm *VM) Run() error {
 			switch collection := collection.(type) {
 			case *object.Hash:
 				if err := vm.executeHashIndexOperator(collection, index); err != nil {
-					return err
+					return toErr(err)
 				}
 
 			case *object.Array:
 				if err := vm.executeArrayIndexOperator(collection, index); err != nil {
-					return err
+					return toErr(err)
 				}
 			}
 
 		case code.OpCall:
 			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
 			if !ok {
-				return fmt.Errorf("calling a non-function")
+				return toErr(fmt.Errorf("calling a non-function"))
 			}
 
-			vm.frameStack.Push(NewFrame(fn))
+			frame := NewFrame(fn, vm.sp)
+			vm.frameStack.Push(frame)
+			vm.sp = frame.basePointer + fn.NumLocals
 
 		case code.OpReturnValue:
 			returnValue := vm.pop()
 
 			// two pops - one for the function frame, and one for the CALL that
 			// put us into the function to begin with.
-			vm.frameStack.Pop()
-			vm.pop()
+			frame := vm.frameStack.Pop()
+			vm.sp = frame.basePointer - 1
 
 			if err := vm.push(returnValue); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		case code.OpReturn:
-			vm.frameStack.Pop()
-			vm.pop()
+			frame := vm.frameStack.Pop()
+			vm.sp = frame.basePointer - 1
 			if err := vm.push(constNull); err != nil {
-				return err
+				return toErr(err)
 			}
 
 		default:
@@ -274,12 +349,12 @@ func (vm *VM) Run() error {
 			definition, err := code.Lookup(rawCode)
 			if err != nil {
 				// TODO: think if this flow makes sense; if does add test.
-				return fmt.Errorf("encountered an unknown opcode: %q", rawCode)
+				return toErr(fmt.Errorf("encountered an unknown opcode: %q", rawCode))
 			}
 
 			// TODO: I'm not sure if this really makes sense to test, consider
 			// changing into a panic maybe?
-			return fmt.Errorf("opcode %s not yet supported", definition.Name)
+			return toErr(fmt.Errorf("opcode %s not yet supported", definition.Name))
 		}
 	}
 
@@ -501,6 +576,6 @@ func (vm *VM) push(o object.Object) error {
 
 func (vm *VM) pop() object.Object {
 	o := vm.stack[vm.sp-1]
-	vm.sp-- // simply decreasing the pointer, this will allow this location in memory to be overwritten. no need to explicitly "drop" the memory.
+	vm.sp-- // simply decreasing the pointer, this will allow this location in memory to be overwritten. No need to explicitly "drop" the memory.
 	return o
 }

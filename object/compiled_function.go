@@ -7,6 +7,7 @@ import (
 
 type CompiledFunction struct {
 	Instructions code.Instructions
+	NumLocals    int
 }
 
 func (c *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OJ }

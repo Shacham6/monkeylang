@@ -306,11 +306,15 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		numLocals := c.symbolTable.numDefintions
 		instructions := c.leaveScope()
 
 		// ========== LEAVING FUNCTION SCOPE ==========
 
-		compiledFn := &object.CompiledFunction{Instructions: instructions}
+		compiledFn := &object.CompiledFunction{
+			Instructions: instructions,
+			NumLocals:    numLocals,
+		}
 
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 
