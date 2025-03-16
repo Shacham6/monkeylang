@@ -316,18 +316,20 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpCall:
+			numOfArgs := code.ReadUint8(ins[ip+1:])
 			vm.frameStack.Current().ip += 1
 
-			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
+			fnTarget := vm.stack[vm.sp-1-int(numOfArgs)]
+			fn, ok := fnTarget.(*object.CompiledFunction)
 			if !ok {
 				return toErr(fmt.Errorf(
 					"calling a non-function: (%s) %s",
-					vm.stack[vm.sp-1].Type(),
-					vm.stack[vm.sp-1].Inspect(),
+					fnTarget.Type(),
+					fnTarget.Inspect(),
 				))
 			}
 
-			frame := NewFrame(fn, vm.sp)
+			frame := NewFrame(fn, vm.sp-int(numOfArgs))
 			vm.frameStack.Push(frame)
 			vm.sp = frame.basePointer + fn.NumLocals
 
