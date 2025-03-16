@@ -350,27 +350,22 @@ func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
 			`,
 			3,
 		),
+		vmtest.New(
+			`
+			let globalNum = 10;
+
+			let sum = fn(a, b) {
+				let c = a + b;
+				c + globalNum;
+			}
+
+			let outer = fn() {
+				sum(1, 2) + sum(3, 4) + globalNum;
+			}
+
+			outer() + globalNum;
+			`,
+			50,
+		),
 	})
 }
-
-// func TestGoal(t *testing.T) {
-// 	vmtest.RunVmTests(t, []vmtest.VmTestCase{
-// 		vmtest.New(
-// 			`
-// 			let globalNum = 10;
-//
-// 			let sum = fn(a, b) {
-// 				let c = a + b;
-// 				c + globalNum;
-// 			}
-//
-// 			let outer = fn() {
-// 				sum(1, 2) + sum(3, 4) + globalNum;
-// 			}
-//
-// 			outer() + globalNum;
-// 			`,
-// 			40,
-// 		),
-// 	})
-// }
