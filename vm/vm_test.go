@@ -307,9 +307,46 @@ func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
 		vmtest.New(
 			`
 			let sum = fn(a, b) {
-				a + b;
+				let c = a + b;
+				c;
 			};
 			sum(1, 2);
+			`,
+			3,
+		),
+		vmtest.New(
+			`
+			let sum = fn(a, b) {
+				let c = a + b;
+				c;
+			};
+			sum(1, 2) + sum(3, 4);
+			`,
+			10,
+		),
+		vmtest.New(
+			`
+			let sum = fn(a, b) {
+				let c = a + b;
+				c;
+			};
+
+			let outer = fn() {
+				sum(1, 2) + sum(3, 4);
+			};
+
+			outer();
+			`,
+			10,
+		),
+		vmtest.New(
+			`
+			let sum = fn(a, b) {
+				let c = a + b;
+				c;
+			};
+
+			sum(1, 1 + 1);
 			`,
 			3,
 		),
