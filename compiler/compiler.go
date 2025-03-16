@@ -286,6 +286,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		c.enterScope()
 
+		for _, p := range node.Parameters() {
+			c.symbolTable.Define(p.Value)
+		}
+
 		if err := c.Compile(node.Body()); err != nil {
 			return err
 		}

@@ -295,6 +295,27 @@ func TestFirstClassFunctions(t *testing.T) {
 	})
 }
 
+func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New(
+			`
+			let identity = fn(a) { a; }
+			identity(4);
+			`,
+			4,
+		),
+		vmtest.New(
+			`
+			let sum = fn(a, b) {
+				a + b;
+			};
+			sum(1, 2);
+			`,
+			3,
+		),
+	})
+}
+
 // func TestGoal(t *testing.T) {
 // 	vmtest.RunVmTests(t, []vmtest.VmTestCase{
 // 		vmtest.New(

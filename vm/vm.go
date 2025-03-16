@@ -320,7 +320,11 @@ func (vm *VM) Run() error {
 
 			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
 			if !ok {
-				return toErr(fmt.Errorf("calling a non-function"))
+				return toErr(fmt.Errorf(
+					"calling a non-function: (%s) %s",
+					vm.stack[vm.sp-1].Type(),
+					vm.stack[vm.sp-1].Inspect(),
+				))
 			}
 
 			frame := NewFrame(fn, vm.sp)
