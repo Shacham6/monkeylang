@@ -6,12 +6,6 @@ import (
 	"monkey/object"
 )
 
-var (
-	NULL  = object.Null{}
-	TRUE  = object.Boolean{Value: true}
-	FALSE = object.Boolean{Value: false}
-)
-
 func isError(obj object.Object) bool {
 	if obj != nil {
 		return obj.Type() == object.ERROR_OBJ
@@ -71,7 +65,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		env.Set(v.Name.Value, val)
-		return &NULL
+		return &object.CONST_NULL
 
 	case *ast.FunctionLiteral:
 		params := v.Parameters()
@@ -181,7 +175,7 @@ func evalHashIndexExpression(left object.Object, index object.Object) object.Obj
 
 	pair, ok := hashObject.Pairs[key]
 	if !ok {
-		return &NULL
+		return &object.CONST_NULL
 	}
 
 	return pair.Value
@@ -193,7 +187,7 @@ func evalArrayIndexExpression(left object.Object, index object.Object) object.Ob
 	max := int64(len(arr.Elements) - 1)
 
 	if idx < 0 || idx > max {
-		return &NULL
+		return &object.CONST_NULL
 	}
 	return arr.Elements[idx]
 }
@@ -244,17 +238,17 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 	} else if alt, ok := ie.Alternative(); ok {
 		return Eval(alt, env)
 	} else {
-		return &NULL
+		return &object.CONST_NULL
 	}
 }
 
 func isTruthy(obj object.Object) bool {
 	switch obj {
-	case &NULL:
+	case &object.CONST_NULL:
 		return false
-	case &TRUE:
+	case &object.CONST_TRUE:
 		return true
-	case &FALSE:
+	case &object.CONST_FALSE:
 		return false
 	default:
 		return true
@@ -271,14 +265,14 @@ func evalIntegerLiteral(il *ast.IntegerLiteral) object.Object {
 
 func nativeBoolToBooleanObject(b bool) object.Object {
 	if b {
-		return &TRUE
+		return &object.CONST_TRUE
 	}
-	return &FALSE
+	return &object.CONST_FALSE
 }
 
 func evalIdentifier(i *ast.Identifier, env *object.Environment) object.Object {
 	if i.Value == "null" {
-		return &NULL
+		return &object.CONST_NULL
 	}
 	if val, ok := env.Get(i.Value); ok {
 		return val
@@ -381,14 +375,14 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 
 func evalBangOperatorExpression(right object.Object) object.Object {
 	switch right {
-	case &TRUE:
-		return &FALSE
-	case &FALSE:
-		return &TRUE
-	case &NULL:
-		return &TRUE
+	case &object.CONST_TRUE:
+		return &object.CONST_FALSE
+	case &object.CONST_FALSE:
+		return &object.CONST_TRUE
+	case &object.CONST_NULL:
+		return &object.CONST_TRUE
 	default:
-		return &FALSE
+		return &object.CONST_FALSE
 	}
 }
 
