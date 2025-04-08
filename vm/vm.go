@@ -6,7 +6,6 @@ import (
 	"monkey/compiler"
 	"monkey/object"
 	unsafestack "monkey/unsafe_stack"
-	"strings"
 )
 
 const (
@@ -98,57 +97,6 @@ func (vm *VM) LastPoppedStackElem() object.Object {
 		)
 	}
 	return vm.stack[vm.sp]
-}
-
-type VmRunError struct {
-	err          error
-	instructions code.Instructions
-
-	stack        []object.Object
-	globals      []object.Object
-	stackPointer int // "stack pointer". Always points to the next value. Top of stack is stack[sp-1]
-}
-
-func (e *VmRunError) Error() string {
-	lines := []string{}
-	lines = append(lines, fmt.Sprintf("Got runtime error: %s", e.err))
-
-	globalsLines := []string{"Globals:"}
-	for idx, g := range e.globals {
-		if g == nil {
-			continue
-		}
-		globalsLines = append(globalsLines, fmt.Sprintf("[%04d] %s", idx, g.Inspect()))
-	}
-	globalsString := strings.Join(globalsLines, "\n")
-	lines = append(lines, globalsString)
-
-	stackLines := []string{"Stack:"}
-	for idx, so := range e.stack {
-		if so == nil {
-			continue
-		}
-
-		var pointer string
-		if idx == e.stackPointer {
-			pointer = "<-------"
-		} else {
-			pointer = ""
-		}
-
-		stackLines = append(stackLines, fmt.Sprintf("[%04d] %s %s", idx, so.Inspect(), pointer))
-	}
-	stackString := strings.Join(stackLines, "\n")
-	lines = append(lines, stackString)
-
-	runtimeDump := fmt.Sprintf(
-		"Runtime Dump:\n%s",
-		e.instructions.String(),
-	)
-
-	lines = append(lines, runtimeDump)
-
-	return strings.Join(lines, "\n=====================\n")
 }
 
 func (vm *VM) Run() error {
@@ -330,11 +278,11 @@ func (vm *VM) Run() error {
 			}
 
 			if iNumOfArgs := int(numOfArgs); fn.NumParameters != iNumOfArgs {
-				return fmt.Errorf(
+				return toErr(fmt.Errorf(
 					"wrong number of arguments: want = %d, got = %d",
 					fn.NumParameters,
 					iNumOfArgs,
-				)
+				))
 			}
 
 			frame := NewFrame(fn, vm.sp-int(numOfArgs))

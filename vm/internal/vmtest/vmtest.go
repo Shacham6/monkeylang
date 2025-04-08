@@ -243,24 +243,42 @@ func RunVmTestsResultInError(t *testing.T, tests []VmErrorTestCase) {
 				t.Fatalf("compiler error: %s", err)
 			}
 
-			vm := vm.New(comp.Bytecode())
-			err = vm.Run()
+			v := vm.New(comp.Bytecode())
+			err = v.Run()
 
 			if err == nil {
-				stackElem := vm.LastPoppedStackElem()
+				stackElem := v.LastPoppedStackElem()
 				t.Fatalf(
 					"expected an error but got a result instead: %v",
 					stackElem.Inspect(),
 				)
 			}
 
-			if err.Error() != tt.ExpectedError {
-				t.Errorf(
-					"received error message is not as expected.\n got = ```\n%s\n```\n want  = ```\n%s\n```",
-					err.Error(),
-					tt.ExpectedError,
-				)
+			vmErr, ok := err.(*vm.VmRunError)
+			if !ok {
+				// It's alright that there are non-`vm.VmRunError` returned as long as they are
+				// according to format...
+				ensureErrMessageAsExpected(t, err, tt.ExpectedError)
+			} else {
+				// we unwrap our `vm.VmRunError` errors for this test because we add all this data
+				// that would be pretty much impossible to efficiently track and corroborate in the
+				// tests themselves.
+				ensureErrMessageAsExpected(t, vmErr.Err, tt.ExpectedError)
 			}
 		})
 	}
+}
+
+func ensureErrMessageAsExpected(t *testing.T, got error, expected string) {
+	t.Helper()
+
+	if got.Error() == expected {
+		return
+	}
+
+	t.Errorf(
+		"received error message is not as expected.\n got = ```\n%s\n```\n want  = ```\n%s\n```",
+		got.Error(),
+		expected,
+	)
 }
