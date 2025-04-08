@@ -329,6 +329,14 @@ func (vm *VM) Run() error {
 				))
 			}
 
+			if iNumOfArgs := int(numOfArgs); fn.NumParameters != iNumOfArgs {
+				return fmt.Errorf(
+					"wrong number of arguments: want = %d, got = %d",
+					fn.NumParameters,
+					iNumOfArgs,
+				)
+			}
+
 			frame := NewFrame(fn, vm.sp-int(numOfArgs))
 			vm.frameStack.Push(frame)
 			vm.sp = frame.basePointer + fn.NumLocals

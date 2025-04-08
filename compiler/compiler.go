@@ -318,6 +318,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 		compiledFn := &object.CompiledFunction{
 			Instructions: instructions,
 			NumLocals:    numLocals,
+			// NOTE: This is not the ideal info to bring to the users
+			// Ideally on errors and such we'd name the missing arguments.
+			NumParameters: len(node.Parameters()),
 		}
 
 		c.emit(code.OpConstant, c.addConstant(compiledFn))

@@ -221,3 +221,46 @@ func RunVmTests(t *testing.T, tests []VmTestCase) {
 		})
 	}
 }
+
+type VmErrorTestCase struct {
+	Input         string
+	ExpectedError string
+}
+
+func RunVmTestsResultInError(t *testing.T, tests []VmErrorTestCase) {
+	t.Helper()
+
+	for _, tt := range tests {
+		t.Run(tt.Input, func(t *testing.T) {
+			program, err := parse(tt.Input)
+			if err != nil {
+				t.Fatalf("failed parsing: %s", err)
+			}
+
+			comp := compiler.New()
+			err = comp.Compile(program)
+			if err != nil {
+				t.Fatalf("compiler error: %s", err)
+			}
+
+			vm := vm.New(comp.Bytecode())
+			err = vm.Run()
+
+			if err == nil {
+				stackElem := vm.LastPoppedStackElem()
+				t.Fatalf(
+					"expected an error but got a result instead: %v",
+					stackElem.Inspect(),
+				)
+			}
+
+			if err.Error() != tt.ExpectedError {
+				t.Errorf(
+					"received error message is not as expected.\n got = ```\n%s\n```\n want  = ```\n%s\n```",
+					err.Error(),
+					tt.ExpectedError,
+				)
+			}
+		})
+	}
+}

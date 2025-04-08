@@ -369,3 +369,20 @@ func TestCallingFunctionsWithArgumentsAndBindings(t *testing.T) {
 		),
 	})
 }
+
+func TestCallingFunctionsWithWrongArguments(t *testing.T) {
+	vmtest.RunVmTestsResultInError(t, []vmtest.VmErrorTestCase{
+		{
+			Input:         `fn(){1;}(1)`,
+			ExpectedError: `wrong number of arguments: want = 0, got = 1`,
+		},
+		{
+			Input:         `fn(a){a;}()`,
+			ExpectedError: `wrong number of arguments: want = 1, got = 0`,
+		},
+		{
+			Input:         `fn(a, b){a;}(1)`,
+			ExpectedError: `wrong number of arguments: want = 2, got = 1`,
+		},
+	})
+}
