@@ -29,6 +29,14 @@ const (
 	OpReturn
 	OpGetLocal
 	OpSetLocal
+	// This is an element of the book I don't think I can entirely agree with in terms of language design, right?
+	// I mean it can't be a good thing to have an entirely separate way to handle the modules of just the standard
+	// library, after all a shitload of functions are called all the time.
+	// ...Or is it more logical that by enhancing these functions, everything's enhanced, because everything must
+	// end up calling these functions, but even so if I _can_ do this it's because I statically know their identity
+	// and their memory location and can thus optimize for such, can't I do this for all functions?
+	// I don't know man.
+	OpGetBuiltin
 )
 
 var definitions = map[Opcode]*Definition{
@@ -58,6 +66,7 @@ var definitions = map[Opcode]*Definition{
 	OpReturn:        {"OpReturn", []int{}},
 	OpGetLocal:      {"OpGetLocal", []int{1}},
 	OpSetLocal:      {"OpSetLocal", []int{1}},
+	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 }
 
 type Definition struct {

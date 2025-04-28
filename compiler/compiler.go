@@ -29,7 +29,13 @@ type Compiler struct {
 
 func New() *Compiler {
 	constants := []object.Object{}
-	return NewWithState(NewSymbolTable(), constants)
+
+	symbolTable := NewSymbolTable()
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
+
+	return NewWithState(symbolTable, constants)
 }
 
 func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
@@ -242,6 +248,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpGetGlobal, symbol.Index)
 		case LocalScope:
 			c.emit(code.OpGetLocal, symbol.Index)
+		case BuiltinScope:
+			c.emit(code.OpGetBuiltin, symbol.Index)
 		default:
 			panic(fmt.Sprintf("symbol scope not supported: %+v", symbol.Scope))
 		}

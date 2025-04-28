@@ -5,9 +5,9 @@ WORKDIR /app
 
 build:
 	COPY . .
-	RUN make build
+	RUN go build -o targets/ .
 
 test:
 	COPY . .
-	RUN make test
+	RUN go test ./...
 

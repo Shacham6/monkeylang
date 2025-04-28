@@ -11,9 +11,7 @@ func toBF(bf BuiltinFunction) *Builtin {
 	return &Builtin{bf}
 }
 
-var Builtins = initBuiltins()
-
-func initBuiltins() []BuiltinItem {
+var Builtins = func() []BuiltinItem {
 	return []BuiltinItem{
 		{
 			"len",
@@ -126,7 +124,7 @@ func initBuiltins() []BuiltinItem {
 			}),
 		},
 	}
-}
+}()
 
 func newError(format string, args ...any) *Error {
 	return &Error{Message: fmt.Sprintf(format, args...)}
