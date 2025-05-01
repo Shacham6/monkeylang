@@ -386,3 +386,46 @@ func TestCallingFunctionsWithWrongArguments(t *testing.T) {
 		},
 	})
 }
+
+func TestBuiltinFunctions(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New(`len("")`, 0),
+		vmtest.New(`len("four")`, 4),
+		vmtest.New(`len("hello world")`, 11),
+		vmtest.New(`len([1, 2, 3])`, 3),
+		vmtest.New(`len([])`, 0),
+		vmtest.New(`first([1, 2, 3])`, 1),
+		vmtest.New(`first([])`, object.CONST_NULL),
+		vmtest.New(`last([1, 2, 3])`, 3),
+		vmtest.New(`last([])`, object.CONST_NULL),
+		vmtest.New(`rest([1, 2, 3])`, []int{2, 3}),
+		vmtest.New(`rest([])`, []int{}),
+		vmtest.New(`push([], 1)`, []int{1}),
+	})
+}
+
+func TestBuiltinFunctionsErrors(t *testing.T) {
+	// TODO: i don't remember what the error messages supposed to be. Find them on crash.
+	vmtest.RunVmTestsResultInError(t, []vmtest.VmErrorTestCase{
+		{
+			Input:         `len(1)`,
+			ExpectedError: "argument to len not supported",
+		},
+		{
+			Input:         `len("one", "two")`,
+			ExpectedError: "argument to len not supported",
+		},
+		{
+			Input:         `first(1)`,
+			ExpectedError: "argument to first must be array got number",
+		},
+		{
+			Input:         `last(1)`,
+			ExpectedError: "argument to last must be array got number",
+		},
+		{
+			Input:         `push(1, 1)`,
+			ExpectedError: "argument to push must be array got number",
+		},
+	})
+}

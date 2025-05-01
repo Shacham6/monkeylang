@@ -191,6 +191,13 @@ func (vm *VM) Run() error {
 				return toErr(err)
 			}
 
+		case code.OpGetBuiltin:
+			builtinIndex := code.ReadUint8(ins[ip+1:])
+			vm.frameStack.Current().ip += 1
+			if err := vm.push(object.Builtins[builtinIndex].Builtin); err != nil {
+				return toErr(err)
+			}
+
 		case code.OpSetLocal:
 			localIndex := code.ReadUint8(ins[ip+1:])
 			vm.frameStack.Current().ip += 1
