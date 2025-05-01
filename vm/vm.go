@@ -274,27 +274,60 @@ func (vm *VM) Run() error {
 			numOfArgs := code.ReadUint8(ins[ip+1:])
 			vm.frameStack.Current().ip += 1
 
-			fnTarget := vm.stack[vm.sp-1-int(numOfArgs)]
-			fn, ok := fnTarget.(*object.CompiledFunction)
-			if !ok {
+			fnT := vm.stack[vm.sp-1-int(numOfArgs)]
+
+			iNumOfArgs := int(numOfArgs)
+
+			// The fact that we're matching called arguments at runtime is weird for me,
+			// given this info is available at compile time... But no matter for now.
+			// Following along.
+			switch fn := fnT.(type) {
+			case *object.CompiledFunction:
+				if fn.NumParameters != iNumOfArgs {
+					return toErr(fmt.Errorf(
+						"wrong number of arguments: want = %d, got = %d",
+						fn.NumParameters,
+						iNumOfArgs,
+					))
+				}
+
+				frame := NewFrame(fn, vm.sp-int(numOfArgs))
+				vm.frameStack.Push(frame)
+				vm.sp = frame.basePointer + fn.NumLocals
+
+			case *object.Builtin:
+				args := vm.stack[vm.sp-iNumOfArgs : vm.sp]
+				result := fn.Fn(args...)
+				vm.sp = vm.sp - iNumOfArgs - 1
+				if result == nil {
+					vm.push(constNull)
+				} else {
+					vm.push(result)
+				}
+
+			default:
 				return toErr(fmt.Errorf(
 					"calling a non-function: (%s) %s",
-					fnTarget.Type(),
-					fnTarget.Inspect(),
+					fnT.Type(),
+					fnT.Inspect(),
 				))
 			}
 
-			if iNumOfArgs := int(numOfArgs); fn.NumParameters != iNumOfArgs {
-				return toErr(fmt.Errorf(
-					"wrong number of arguments: want = %d, got = %d",
-					fn.NumParameters,
-					iNumOfArgs,
-				))
-			}
+			// fn, ok := fnT.(*object.CompiledFunction)
+			// if !ok {
+			// }
+			//
+			// if iNumOfArgs := int(numOfArgs); fn.NumParameters != iNumOfArgs {
+			// 	return toErr(fmt.Errorf(
+			// 		"wrong number of arguments: want = %d, got = %d",
+			// 		fn.NumParameters,
+			// 		iNumOfArgs,
+			// 	))
+			// }
 
-			frame := NewFrame(fn, vm.sp-int(numOfArgs))
-			vm.frameStack.Push(frame)
-			vm.sp = frame.basePointer + fn.NumLocals
+			// frame := NewFrame(fn, vm.sp-int(numOfArgs))
+			// vm.frameStack.Push(frame)
+			// vm.sp = frame.basePointer + fn.NumLocals
 
 		case code.OpReturnValue:
 			returnValue := vm.pop()
