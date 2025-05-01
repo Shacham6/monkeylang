@@ -54,7 +54,11 @@ func StartCompiled(in io.Reader, out io.Writer) {
 
 	constants := []object.Object{}
 	globals := vm.InitGlobalsArray()
+
 	symbolTable := compiler.NewSymbolTable()
+	for idx, builtin := range object.Builtins {
+		symbolTable.DefineBuiltin(idx, builtin.Name)
+	}
 
 	for {
 		fmt.Fprintf(out, "%s", PROMPT)
@@ -76,7 +80,6 @@ func StartCompiled(in io.Reader, out io.Writer) {
 		evaluator.DefineMacros(program, macroEnv)
 		expanded := evaluator.ExpandMacros(program, macroEnv)
 
-		// comp := compiler.New()
 		comp := compiler.NewWithState(symbolTable, constants)
 
 		if err := comp.Compile(expanded); err != nil {
@@ -85,7 +88,6 @@ func StartCompiled(in io.Reader, out io.Writer) {
 		}
 
 		machine := vm.NewWithGlobalState(comp.Bytecode(), globals)
-		// machine := vm.New(comp.Bytecode())
 		if err := machine.Run(); err != nil {
 			fmt.Fprintf(out, "Executing bytecode failed:\n\t%s\n", err)
 			continue
