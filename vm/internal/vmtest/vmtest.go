@@ -65,6 +65,23 @@ func testStringObject(expected string, actual object.Object) error {
 	return nil
 }
 
+type UserErr string
+
+func testUserErrMessage(expectedUserErr UserErr, actual object.Object) error {
+	expected := string(expectedUserErr)
+
+	result, ok := actual.(*object.Error)
+	if !ok {
+		return fmt.Errorf("object is not *object.Error. got = %T (%+V)", actual, actual)
+	}
+
+	if result.Message != expected {
+		return fmt.Errorf("result.Message has wrong value. got = %q, want = %q", result.Message, expected)
+	}
+
+	return nil
+}
+
 func testNilObject(actual object.Object) error {
 	_, ok := actual.(*object.Null)
 	if ok {
@@ -101,6 +118,11 @@ func testExpectedObject(t *testing.T, expected any, actual object.Object) {
 	case nil:
 		if err := testNilObject(actual); err != nil {
 			t.Fatalf("testNilObject failed: %s", err)
+		}
+
+	case UserErr:
+		if err := testUserErrMessage(expected, actual); err != nil {
+			t.Fatalf("testUserErrMessage failed: %s", err)
 		}
 
 	case []int:
