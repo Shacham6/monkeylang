@@ -11,7 +11,7 @@ type CompiledFunction struct {
 	NumParameters int
 }
 
-func (c *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OJ }
+func (c *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
 
 func (c *CompiledFunction) Inspect() string {
 	return fmt.Sprintf("CompiledFunction[%p]", c)

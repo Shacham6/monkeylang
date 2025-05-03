@@ -37,6 +37,8 @@ const (
 	// and their memory location and can thus optimize for such, can't I do this for all functions?
 	// I don't know man.
 	OpGetBuiltin
+
+	OpClosure
 )
 
 var definitions = map[Opcode]*Definition{
@@ -67,6 +69,7 @@ var definitions = map[Opcode]*Definition{
 	OpGetLocal:      {"OpGetLocal", []int{1}},
 	OpSetLocal:      {"OpSetLocal", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
+	OpClosure:       {"OpClosure", []int{2, 1}},
 }
 
 type Definition struct {

@@ -16,10 +16,12 @@ func TestInstructionString(t *testing.T) {
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpConstant, 2),
 				code.Make(code.OpConstant, 65535),
+				code.Make(code.OpClosure, 65535, 255),
 			},
 			`0000 OpConstant 1
 0003 OpConstant 2
 0006 OpConstant 65535
+0009 OpClosure 65535 255
 `,
 		},
 		{
@@ -50,7 +52,7 @@ func TestInstructionString(t *testing.T) {
 			}
 
 			if concatted.String() != tt.expected {
-				t.Errorf("instructions wrongly formatted.\n want = %q\n  got = %q", tt.expected, concatted.String())
+				t.Errorf("instructions wrongly formatted.\n want = ```\n%s\n```\n got = ```\n%s\n```", tt.expected, concatted.String())
 			}
 		})
 	}
