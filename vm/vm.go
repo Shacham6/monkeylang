@@ -58,7 +58,8 @@ func NewWithGlobalState(bytecode *compiler.Bytecode, globals []object.Object) *V
 	framesStack := unsafestack.Make[*Frame](MaxFrames)
 
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClosure := &object.Closure{Fn: mainFn}
+	mainFrame := NewFrame(mainClosure, 0)
 
 	framesStack.Push(mainFrame)
 
@@ -274,30 +275,30 @@ func (vm *VM) Run() error {
 			numOfArgs := code.ReadUint8(ins[ip+1:])
 			vm.frameStack.Current().ip += 1
 
-			fnT := vm.stack[vm.sp-1-int(numOfArgs)]
+			calleeT := vm.stack[vm.sp-1-int(numOfArgs)]
 
 			iNumOfArgs := int(numOfArgs)
 
 			// The fact that we're matching called arguments at runtime is weird for me,
 			// given this info is available at compile time... But no matter for now.
 			// Following along.
-			switch fn := fnT.(type) {
-			case *object.CompiledFunction:
-				if fn.NumParameters != iNumOfArgs {
+			switch callee := calleeT.(type) {
+			case *object.Closure:
+				if callee.Fn.NumParameters != iNumOfArgs {
 					return toErr(fmt.Errorf(
 						"wrong number of arguments: want = %d, got = %d",
-						fn.NumParameters,
+						callee.Fn.NumParameters,
 						iNumOfArgs,
 					))
 				}
 
-				frame := NewFrame(fn, vm.sp-int(numOfArgs))
+				frame := NewFrame(callee, vm.sp-iNumOfArgs)
 				vm.frameStack.Push(frame)
-				vm.sp = frame.basePointer + fn.NumLocals
+				vm.sp = frame.basePointer + callee.Fn.NumLocals
 
 			case *object.Builtin:
 				args := vm.stack[vm.sp-iNumOfArgs : vm.sp]
-				result := fn.Fn(args...)
+				result := callee.Fn(args...)
 				vm.sp = vm.sp - iNumOfArgs - 1
 				if result == nil {
 					vm.push(constNull)
@@ -308,8 +309,8 @@ func (vm *VM) Run() error {
 			default:
 				return toErr(fmt.Errorf(
 					"calling a non-function: (%s) %s",
-					fnT.Type(),
-					fnT.Inspect(),
+					callee.Type(),
+					callee.Inspect(),
 				))
 			}
 

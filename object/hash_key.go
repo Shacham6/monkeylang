@@ -86,6 +86,10 @@ func (f *CompiledFunction) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(f)
 }
 
+func (cl *Closure) HashKey() (HashKey, error) {
+	return ZeroHashKey(), newTypeNotHashableError(cl)
+}
+
 func (r *ReturnValue) HashKey() (HashKey, error) {
 	return ZeroHashKey(), newTypeNotHashableError(r)
 }

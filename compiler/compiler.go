@@ -331,7 +331,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			NumParameters: len(node.Parameters()),
 		}
 
-		c.emit(code.OpConstant, c.addConstant(compiledFn))
+		c.emit(code.OpClosure, c.addConstant(compiledFn), 0)
 
 		return nil
 

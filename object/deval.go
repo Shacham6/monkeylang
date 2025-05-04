@@ -73,6 +73,14 @@ func (cf *CompiledFunction) Deval() (ast.Node, error) {
 	return nil, newDevalForTypeNotSupportedError(cf)
 }
 
+func (cl *Closure) Deval() (ast.Node, error) {
+	node, err := cl.Fn.Deval()
+	if err != nil {
+		return nil, err
+	}
+	return node, nil
+}
+
 func (r *ReturnValue) Deval() (ast.Node, error) {
 	return nil, newDevalForTypeNotSupportedError(r)
 }
