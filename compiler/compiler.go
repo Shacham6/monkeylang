@@ -250,6 +250,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpGetLocal, symbol.Index)
 		case BuiltinScope:
 			c.emit(code.OpGetBuiltin, symbol.Index)
+		case FreeScope:
+			c.emit(code.OpGetFree, symbol.Index)
 		default:
 			panic(fmt.Sprintf("symbol scope not supported: %+v", symbol.Scope))
 		}
