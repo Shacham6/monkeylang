@@ -6,6 +6,7 @@ const (
 	LocalScope   SymbolScope = "LOCAL"
 	GlobalScope  SymbolScope = "GLOBAL"
 	BuiltinScope SymbolScope = "BUILTIN"
+	FreeScope    SymbolScope = "FREE"
 )
 
 type Symbol struct {
@@ -19,7 +20,9 @@ func NewSymbol(name string, scope SymbolScope, index int) Symbol {
 }
 
 type SymbolTable struct {
-	store         map[string]Symbol
+	store       map[string]Symbol
+	FreeSymbols []Symbol
+
 	numDefintions int
 	parent_       *SymbolTable
 	isEnclosed    bool
@@ -31,8 +34,9 @@ func NewSymbolTable() *SymbolTable {
 
 func newEnclosedSymbolTable(parent *SymbolTable) *SymbolTable {
 	store := map[string]Symbol{}
+	freeSymbols := []Symbol{}
 	numDefinitions := 0
-	return &SymbolTable{store, numDefinitions, parent, parent != nil}
+	return &SymbolTable{store, freeSymbols, numDefinitions, parent, parent != nil}
 }
 
 func (s *SymbolTable) Define(name string) Symbol {
@@ -56,14 +60,36 @@ func (s *SymbolTable) DefineBuiltin(idx int, name string) Symbol {
 	return symbol
 }
 
+func (s *SymbolTable) DefineFree(original Symbol) Symbol {
+	s.FreeSymbols = append(s.FreeSymbols, original)
+	symbol := Symbol{
+		Name:  original.Name,
+		Index: len(s.FreeSymbols) - 1,
+		Scope: FreeScope,
+	}
+	s.store[original.Name] = symbol
+	return symbol
+}
+
 func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
-	symbol, ok := s.store[name]
+	sym, ok := s.store[name]
 	if ok {
-		return symbol, ok
+		return sym, ok
 	}
 
-	if parent, hasParent := s.parent(); hasParent {
-		return parent.forwardedResolve(name)
+	if parent, ok := s.parent(); ok {
+		sym, ok := parent.forwardedResolve(name)
+		if !ok {
+			return sym, ok
+		}
+
+		if sym.Scope == GlobalScope || sym.Scope == BuiltinScope {
+			return sym, ok
+		}
+
+		// If were here must mean the scope is LOCAL
+		free := s.DefineFree(sym)
+		return free, true
 	}
 
 	var sy Symbol
@@ -71,11 +97,17 @@ func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
 }
 
 func (s *SymbolTable) forwardedResolve(name string) (Symbol, bool) {
+	obj, ok := s.store[name]
+	if ok {
+		return obj, ok
+	}
+
 	parent, ok := s.parent()
 	if !ok {
-		s, ok := s.store[name]
-		return s, ok
+		var sy Symbol
+		return sy, false
 	}
+
 	return parent.forwardedResolve(name)
 }
 

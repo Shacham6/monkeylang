@@ -236,8 +236,8 @@ func TestResolveFree(t *testing.T) {
 				NewSymbol("f", LocalScope, 1),
 			},
 			[]Symbol{
-				NewSymbol("c", FreeScope, 0),
-				NewSymbol("d", FreeScope, 1),
+				NewSymbol("c", LocalScope, 0),
+				NewSymbol("d", LocalScope, 1),
 			},
 		},
 	}
@@ -255,16 +255,18 @@ func TestResolveFree(t *testing.T) {
 			}
 		}
 
-		if len(tt.table.FreeSymbols) != len(tt.expectedFreeSymbols) {
+		gotFreeSymbols := tt.table.FreeSymbols
+		amountOfFree := len(gotFreeSymbols)
+		if amountOfFree != len(tt.expectedFreeSymbols) {
 			t.Errorf(
-				"wrong number of free symbols, want = %d, got = %d",
-				len(tt.table.FreeSymbols),
+				"wrong number of free symbols, got = %d, want = %d",
+				amountOfFree,
 				len(tt.expectedFreeSymbols),
 			)
 		}
 
-		for _, sym := range tt.expectedFreeSymbols {
-			result := tt.table.FreeSymbols[sym.Name]
+		for i, sym := range tt.expectedFreeSymbols {
+			result := tt.table.FreeSymbols[i]
 			if result != sym {
 				t.Errorf(
 					"wrong free symbol. got = %+v, want = %+v",
