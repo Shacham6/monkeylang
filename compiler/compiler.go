@@ -316,7 +316,6 @@ func (c *Compiler) Compile(node ast.Node) error {
 		// ========== LEAVING FUNCTION SCOPE ==========
 
 		for _, s := range freeSymbols {
-			// sym, _ := c.symbolTable.Resolve(s.Name)
 			c.loadSymbol(s)
 		}
 
