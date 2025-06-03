@@ -408,3 +408,18 @@ func TestBuiltinFunctions(t *testing.T) {
 		vmtest.New(`push(1, 1)`, vmtest.UserErr("first argument to `push` must be ARRAY, got INTEGER")),
 	})
 }
+
+func TestClosures(t *testing.T) {
+	vmtest.RunVmTests(t, []vmtest.VmTestCase{
+		vmtest.New(
+			`
+			let closureFn = fn(a) {
+				return fn() { a; };
+			}
+			let closure = closureFn(10);
+			closure();
+			`,
+			10,
+		),
+	})
+}

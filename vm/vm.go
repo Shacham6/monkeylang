@@ -216,6 +216,14 @@ func (vm *VM) Run() error {
 				return toErr(err)
 			}
 
+		case code.OpGetFree:
+			index := code.ReadUint8(ins[ip+1:])
+			vm.frameStack.Current().ip += 1
+			currentClosure := vm.frameStack.Current().cl
+			if err := vm.push(currentClosure.Free[index]); err != nil {
+				return toErr(err)
+			}
+
 		case code.OpArray:
 			numElements := int(code.ReadUint16(ins[ip+1:]))
 			vm.frameStack.Current().ip += 2
@@ -273,10 +281,10 @@ func (vm *VM) Run() error {
 
 		case code.OpClosure:
 			constIndex := code.ReadUint16(ins[ip+1:])
-			_ = code.ReadUint8(ins[ip+3:])
+			numFree := code.ReadUint8(ins[ip+3:])
 			vm.frameStack.Current().ip += 3
 
-			err := vm.pushClosure(int(constIndex))
+			err := vm.pushClosure(int(constIndex), int(numFree))
 			if err != nil {
 				return toErr(err)
 			}
@@ -573,14 +581,22 @@ func (vm *VM) push(o object.Object) error {
 	return nil
 }
 
-func (vm *VM) pushClosure(constIndex int) error {
+func (vm *VM) pushClosure(constIndex int, numFree int) error {
 	constant := vm.constants[constIndex]
 	function, ok := constant.(*object.CompiledFunction)
 	if !ok {
 		return fmt.Errorf("invalid constant: expected COMPILED_FUNCTION but got %s", constant.Type())
 	}
 
-	closure := &object.Closure{Fn: function}
+	free := make([]object.Object, numFree)
+	for i := 0; i < numFree; i++ {
+		free[i] = vm.stack[vm.sp-numFree+i]
+	}
+	// We move the pointer back so that the VM will move to execute the OpGet*
+	// codes manually.
+	vm.sp = vm.sp - numFree
+
+	closure := &object.Closure{Fn: function, Free: free}
 	return vm.push(closure)
 }
 
