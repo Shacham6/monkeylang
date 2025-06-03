@@ -209,6 +209,12 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	stmt.Value = p.parseExpression(LOWEST)
 
+	// Tailoring an assignment of name to a function in case it is a function!
+	fn, ok := stmt.Value.(*ast.FunctionLiteral)
+	if ok {
+		fn.SetName(stmt.Name.Value)
+	}
+
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
@@ -375,7 +381,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 
 	body := p.parseBlockStatement()
 
-	return ast.NewFunctionLiteral(curToken, params, body)
+	return ast.NewFunctionLiteral(curToken, params, body, "")
 }
 
 func (p *Parser) parseMacroLiteral() ast.Expression {

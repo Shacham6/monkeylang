@@ -725,6 +725,37 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
+func TestNamedFunctionParsing(t *testing.T) {
+	input := `let something = fn() {}`
+	p := parser.New(lexer.New(input))
+	program := p.ParseProgram()
+	fmt.Printf("%+v", program)
+	if len(program.Statements) != 1 {
+		t.Fatalf("wrong num of statements, want = %d, got = %d", 4, len(program.Statements))
+	}
+
+	letStmt := testutils.CheckIsA[ast.LetStatement](
+		t, program.Statements[0],
+		"program.Statements[0] is not ast.LetStatement as expected")
+
+	fn := testutils.CheckIsA[ast.FunctionLiteral](
+		t, letStmt.Value,
+		"letStmt is not ast.FunctionLiteral as expected",
+	)
+
+	fnName, ok := fn.Name()
+	if !ok {
+		t.Fatalf("expected fn to have name but it does not")
+	}
+	if fnName != "something" {
+		t.Fatalf("fn has wrong Name(), want = %s, got = %s", "something", fnName)
+	}
+
+	// checkParserErrors(t, p)
+
+	// testutils.CheckIsA[]()
+}
+
 func TestCallExpressionParsing(t *testing.T) {
 	input := `add(1, 2 * 3,  4 + 5);`
 
