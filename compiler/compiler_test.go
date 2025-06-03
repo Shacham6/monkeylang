@@ -951,7 +951,7 @@ func TestRecursiveFunctions(t *testing.T) {
 				[]code.Instructions{
 					code.Make(code.OpClosure, 1, 0),
 					code.Make(code.OpSetLocal, 0),
-					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpConstant, 2),
 					code.Make(code.OpCall, 1),
 					code.Make(code.OpReturnValue),

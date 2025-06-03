@@ -224,6 +224,12 @@ func (vm *VM) Run() error {
 				return toErr(err)
 			}
 
+		case code.OpCurrentClosure:
+			currentClosure := vm.frameStack.Current().cl
+			if err := vm.push(currentClosure); err != nil {
+				return toErr(err)
+			}
+
 		case code.OpArray:
 			numElements := int(code.ReadUint16(ins[ip+1:]))
 			vm.frameStack.Current().ip += 2

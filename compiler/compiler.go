@@ -285,6 +285,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		c.enterScope()
 
+		fnName, ok := node.Name()
+		if ok {
+			c.symbolTable.DefineFunctionName(fnName)
+		}
+
 		for _, p := range node.Parameters() {
 			c.symbolTable.Define(p.Value)
 		}
@@ -368,6 +373,8 @@ func (c *Compiler) loadSymbol(symbol Symbol) {
 		c.emit(code.OpGetBuiltin, symbol.Index)
 	case FreeScope:
 		c.emit(code.OpGetFree, symbol.Index)
+	case FunctionScope:
+		c.emit(code.OpCurrentClosure)
 	default:
 		panic(fmt.Sprintf("symbol scope not supported: %+v", symbol.Scope))
 	}
