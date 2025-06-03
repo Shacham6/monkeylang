@@ -243,18 +243,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable: %s", node.Value)
 		}
 
-		switch symbol.Scope {
-		case GlobalScope:
-			c.emit(code.OpGetGlobal, symbol.Index)
-		case LocalScope:
-			c.emit(code.OpGetLocal, symbol.Index)
-		case BuiltinScope:
-			c.emit(code.OpGetBuiltin, symbol.Index)
-		case FreeScope:
-			c.emit(code.OpGetFree, symbol.Index)
-		default:
-			panic(fmt.Sprintf("symbol scope not supported: %+v", symbol.Scope))
-		}
+		c.loadSymbol(symbol)
 
 		return nil
 
@@ -320,10 +309,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefintions
 		instructions := c.leaveScope()
 
 		// ========== LEAVING FUNCTION SCOPE ==========
+
+		for _, s := range freeSymbols {
+			// sym, _ := c.symbolTable.Resolve(s.Name)
+			c.loadSymbol(s)
+		}
 
 		compiledFn := &object.CompiledFunction{
 			Instructions: instructions,
@@ -333,7 +328,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			NumParameters: len(node.Parameters()),
 		}
 
-		c.emit(code.OpClosure, c.addConstant(compiledFn), 0)
+		c.emit(code.OpClosure, c.addConstant(compiledFn), len(freeSymbols))
 
 		return nil
 
@@ -361,6 +356,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 	default:
 		panic(fmt.Sprintf("don't support node of type %T", node))
+	}
+}
+
+func (c *Compiler) loadSymbol(symbol Symbol) {
+	switch symbol.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, symbol.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, symbol.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, symbol.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, symbol.Index)
+	default:
+		panic(fmt.Sprintf("symbol scope not supported: %+v", symbol.Scope))
 	}
 }
 

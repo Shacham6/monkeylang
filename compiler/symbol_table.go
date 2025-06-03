@@ -77,38 +77,24 @@ func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
 		return sym, ok
 	}
 
-	if parent, ok := s.parent(); ok {
-		sym, ok := parent.forwardedResolve(name)
-		if !ok {
-			return sym, ok
-		}
-
-		if sym.Scope == GlobalScope || sym.Scope == BuiltinScope {
-			return sym, ok
-		}
-
-		// If were here must mean the scope is LOCAL
-		free := s.DefineFree(sym)
-		return free, true
-	}
-
-	var sy Symbol
-	return sy, false
-}
-
-func (s *SymbolTable) forwardedResolve(name string) (Symbol, bool) {
-	obj, ok := s.store[name]
-	if ok {
-		return obj, ok
-	}
-
 	parent, ok := s.parent()
 	if !ok {
 		var sy Symbol
 		return sy, false
 	}
 
-	return parent.forwardedResolve(name)
+	sym, ok = parent.Resolve(name)
+	if !ok {
+		return sym, ok
+	}
+
+	if sym.Scope == GlobalScope || sym.Scope == BuiltinScope {
+		return sym, ok
+	}
+
+	// If were here must mean the scope is either LOCAL or FREE
+	free := s.DefineFree(sym)
+	return free, true
 }
 
 func (s *SymbolTable) parent() (*SymbolTable, bool) {

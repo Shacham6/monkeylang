@@ -16,6 +16,7 @@ type compilerTestCase struct {
 	input                string
 	expectedConstants    []any
 	expectedInstructions []code.Instructions
+	name                 string
 }
 
 func TestIntegerArithmetic(t *testing.T) {
@@ -840,7 +841,7 @@ func TestClosures(t *testing.T) {
 			let global = 55;
 			fn() {
 				let a = 66;
-				
+
 				fn() {
 					let b = 77;
 
@@ -858,7 +859,7 @@ func TestClosures(t *testing.T) {
 				77,
 				88,
 				[]code.Instructions{
-					code.Make(code.OpGetGlobal, 3),
+					code.Make(code.OpConstant, 3),
 					code.Make(code.OpSetLocal, 0),
 					code.Make(code.OpGetGlobal, 0),
 					code.Make(code.OpGetFree, 0),
@@ -870,15 +871,15 @@ func TestClosures(t *testing.T) {
 					code.Make(code.OpReturnValue),
 				},
 				[]code.Instructions{
-					code.Make(code.OpGetGlobal, 2),
+					code.Make(code.OpConstant, 2),
 					code.Make(code.OpSetLocal, 0),
-					code.Make(code.OpGetFree, 1),
+					code.Make(code.OpGetFree, 0),
 					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpClosure, 4, 2),
 					code.Make(code.OpReturnValue),
 				},
 				[]code.Instructions{
-					code.Make(code.OpGetGlobal, 1),
+					code.Make(code.OpConstant, 1),
 					code.Make(code.OpSetLocal, 0),
 					code.Make(code.OpGetLocal, 0),
 					code.Make(code.OpClosure, 5, 1),
@@ -894,7 +895,11 @@ func TestClosures(t *testing.T) {
 		},
 	}
 
-	runCompilerTests(t, tests)
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			runCompilerTest(t, tt)
+		})
+	}
 }
 
 func runCompilerTests(t *testing.T, tests []compilerTestCase) {
@@ -902,25 +907,29 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			program := parse(t, tt.input)
-
-			c := compiler.New()
-			err := c.Compile(program)
-			if err != nil {
-				t.Fatalf("compiler error: %s", err)
-			}
-
-			bytecode := c.Bytecode()
-			err = testInstructions(tt.expectedInstructions, bytecode.Instructions)
-			if err != nil {
-				t.Fatalf("testInstructions failed: %s", err)
-			}
-
-			err = testConstants(tt.expectedConstants, bytecode.Constants)
-			if err != nil {
-				t.Fatalf("testConstants failed: %s", err)
-			}
+			runCompilerTest(t, tt)
 		})
+	}
+}
+
+func runCompilerTest(t *testing.T, tt compilerTestCase) {
+	program := parse(t, tt.input)
+
+	c := compiler.New()
+	err := c.Compile(program)
+	if err != nil {
+		t.Fatalf("compiler error: %s", err)
+	}
+
+	bytecode := c.Bytecode()
+	err = testInstructions(tt.expectedInstructions, bytecode.Instructions)
+	if err != nil {
+		t.Fatalf("testInstructions failed: %s", err)
+	}
+
+	err = testConstants(tt.expectedConstants, bytecode.Constants)
+	if err != nil {
+		t.Fatalf("testConstants failed: %s", err)
 	}
 }
 
