@@ -248,11 +248,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 		return nil
 
 	case *ast.LetStatement:
+		symbol := c.symbolTable.Define(node.Name.Value)
+
 		if err := c.Compile(node.Value); err != nil {
 			return err
 		}
-
-		symbol := c.symbolTable.Define(node.Name.Value)
 
 		switch symbol.Scope {
 

@@ -485,5 +485,47 @@ func TestClosures(t *testing.T) {
 			`,
 			99,
 		),
+		vmtest.New(
+			`
+			let countDown = fn(x) {
+				if (x == 0) {
+					return 0;
+				}
+				return countDown(x - 1);
+			};
+			countDown(1);
+			`,
+			0,
+		),
+		vmtest.New(
+			`
+			let countDown = fn(x) {
+				if (x == 0) {
+					return 0;
+				}
+				return countDown(x - 1);
+			};
+			let wrapper = fn() {
+				return countDown(1);
+			};
+			wrapper();
+			`,
+			0,
+		),
+		vmtest.New(
+			`
+			let wrapper = fn() {
+				let countDown = fn(x) {
+					if (x == 0) {
+						return 0;
+					};
+					return countDown(x - 1);
+				};
+				countDown(1);
+			};
+			wrapper();
+			`,
+			0,
+		),
 	})
 }
