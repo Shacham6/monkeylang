@@ -421,5 +421,69 @@ func TestClosures(t *testing.T) {
 			`,
 			10,
 		),
+		vmtest.New(
+			`
+			let closureFn = fn(a, b){
+				return fn(c) { a + b + c; };
+			}
+			let closure = closureFn(1, 2);
+			closure(3);
+			`,
+			6,
+		),
+		vmtest.New(
+			`
+			let closureFn = fn(a, b) {
+				let c = 10;
+				return fn(d) {
+					a + b + c + d;
+				};
+			};
+			let closure = closureFn(1, 2);
+			closure(3);
+			`,
+			16,
+		),
+		vmtest.New(
+			`
+			let newAdderOuter = fn(a, b) {
+				let c = a + b;
+				fn(d) {
+					let e = d + c;
+					fn(f) {e + f;};
+				};
+			};
+			let newAdderInner = newAdderOuter(1, 2);
+			let adder = newAdderInner(3);
+			adder(8);
+			`,
+			14,
+		),
+		vmtest.New(
+			`
+			let a = 1;
+			let newAdderOuter = fn(b) {
+				return fn(c) {
+					return fn(d) {a + b + c + d;};
+				};
+			};
+			let newAdderInner = newAdderOuter(2);
+			let adder = newAdderInner(3);
+			adder(8);
+			`,
+			14,
+		),
+		vmtest.New(
+			`
+			let newClosure = fn(a, b) {
+				let one = fn() { a; };
+				let two = fn() { b; };
+				return fn() { one() + two(); };
+			};
+			let closure = newClosure(9, 90);
+			closure();
+			`,
+			99,
+		),
 	})
 }
