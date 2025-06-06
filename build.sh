@@ -4,10 +4,9 @@ Usage: ./build.sh <command>
 
 commands:
     test              run the tests (locally)
-    test.d, testd     run the tests (containarized using raw docker)
     test.e, teste     run the tests (containarized using earthly)
-    build             build the artifacts (contanarized using earthly)
-    build.l, buildl   build the artifacts (locally)
+    build             build the artifacts (locally)
+    build.e, builde   build the artifacts (contanarized using earthly)
     help              print this message
 EOT
 }
@@ -19,9 +18,8 @@ xx() {
 
 case "${1}" in
   test) shift; xx go test ./... ${*} ;;
-  testd|test.d) shift; xx docker build . --target=test ${*} ;;
   test.e|teste) shift; xx earthly +test ${*} ;;
-  build) shift; xx earthly +build ${*} ;;
-  build.l|buildl) shift; xx go build -o targets/ ${*} ;;
+  build) shift; xx go build -o targets/ ${*} ;;
+  build.e|builde) shift; xx earthly +build ${*} ;;
   *|help) _help ;;
 esac

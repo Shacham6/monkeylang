@@ -2,9 +2,9 @@ FROM golang:1.21.7 as base
 WORKDIR /app
 COPY . .
 
-FROM base as build
+FROM base AS build
 RUN ["go", "build", "-o", "targets/"]
 
-FROM base as test
+FROM base AS test
 RUN ["go", "test", "./..."]
 
