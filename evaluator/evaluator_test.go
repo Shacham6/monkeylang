@@ -332,6 +332,7 @@ func TestBuiltinFunction(t *testing.T) {
 		{`sprintf("%s", "hello")`, NewResultInString("hello")},
 		{`sprintf("%s %s", "hello", "world")`, NewResultInString("hello world")},
 		{`sprintf("hello %s", "world")`, NewResultInString("hello world")},
+		{`sprintf("1 %d", 2)`, NewResultInString("1 2")},
 		{`sprintf()`, NewResultInError("sprintf function requires at least a single argument")},
 		{`sprintf(2)`, NewResultInError("first argument to `sprintf` must be STRING, got = INTEGER")},
 	}

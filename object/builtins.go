@@ -137,7 +137,16 @@ var Builtins = func() []BuiltinItem {
 
 				formattedArgs := make([]any, len(args)-1)
 				for i := 0; i < len(args)-1; i++ {
-					formattedArgs[i] = args[i+1].Inspect()
+					var value any
+					switch v := args[i+1].(type) {
+					case *Integer:
+						value = v.Value
+					case *Boolean:
+						value = v.Value
+					case *String:
+						value = v.Value
+					}
+					formattedArgs[i] = value
 				}
 
 				return &String{fmt.Sprintf(fmtArg.Inspect(), formattedArgs...)}
