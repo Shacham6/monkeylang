@@ -123,6 +123,26 @@ var Builtins = func() []BuiltinItem {
 				return &CONST_NULL
 			}),
 		},
+		{
+			"sprintf",
+			toBF(func(args ...Object) Object {
+				if len(args) < 1 {
+					return newError("sprintf function requires at least a single argument")
+				}
+
+				fmtArg := args[0]
+				if fmtArg.Type() != STRING_OBJ {
+					return newError("first argument to `sprintf` must be %s, got = %s", STRING_OBJ, fmtArg.Type())
+				}
+
+				formattedArgs := make([]any, len(args)-1)
+				for i := 0; i < len(args)-1; i++ {
+					formattedArgs[i] = args[i+1].Inspect()
+				}
+
+				return &String{fmt.Sprintf(fmtArg.Inspect(), formattedArgs...)}
+			}),
+		},
 	}
 }()
 

@@ -326,6 +326,14 @@ func TestBuiltinFunction(t *testing.T) {
 		{`push([])`, NewResultInError("wrong number of arguments. got = 1, want = 2")},
 		{`push([], 12, 12)`, NewResultInError("wrong number of arguments. got = 3, want = 2")},
 		{`push(2, 2)`, NewResultInError("first argument to `push` must be ARRAY, got INTEGER")},
+		// Tests for `sprintf`
+		{`sprintf("1")`, NewResultInString("1")},
+		{`sprintf("123")`, NewResultInString("123")},
+		{`sprintf("%s", "hello")`, NewResultInString("hello")},
+		{`sprintf("%s %s", "hello", "world")`, NewResultInString("hello world")},
+		{`sprintf("hello %s", "world")`, NewResultInString("hello world")},
+		{`sprintf()`, NewResultInError("sprintf function requires at least a single argument")},
+		{`sprintf(2)`, NewResultInError("first argument to `sprintf` must be STRING, got = INTEGER")},
 	}
 
 	for _, tt := range tests {
